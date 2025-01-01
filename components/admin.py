@@ -3,6 +3,7 @@ import os
 import sqlite3
 import operation
 import operation.dboperation
+import operation.fileoperations
 def admin_page():
     # st.set_page_config(page_title="Admin Dashboard", layout="wide")
     secret, role, name = operation.dboperation.get_user_details(st.session_state.user_id)
@@ -30,10 +31,7 @@ def admin_page():
                 f.write("")  # Create an empty file
 
     # Proceed with other operations
-    with open("collegehistory.txt", "r") as f:
-        content = f.read()
-
-    st.write("College History Content:", content)
+    
 # List of text files
                            
     if module=="File Upload and Edit":
@@ -109,152 +107,13 @@ def admin_page():
     elif module == "Database Setup":
         
 
-        # SQLite connection function
-        def create_connection():
-            return sqlite3.connect("dynamic_department.db")
-        
-        # Create tables for departments, staff, timetable, and subjects
-        def create_main_tables():
-            conn = create_connection()
-            cursor = conn.cursor()
-            try:
-                cursor.execute("""
-                CREATE TABLE IF NOT EXISTS admin (
-                    admin_id VARCHAR(50) PRIMARY KEY,
-                    password VARCHAR(50) DEFAULT 'admin_pass',
-                    mfa BOOLEAN DEFAULT 0,
-                    code VARCHAR(50) DEFAULT 'none'
-                );
-                """)
-                # Create Department table
-                cursor.execute("""
-                CREATE TABLE IF NOT EXISTS department (
-                    department_id VARCHAR(50) PRIMARY KEY,
-                    name TEXT,
-                    graduate_level TEXT,
-                    phone TEXT
-                    
-                );
-                """)
-                
-                # Create Staff table
-                cursor.execute("""
-                CREATE TABLE IF NOT EXISTS staff (
-                    staff_id TEXT PRIMARY KEY,
-                    name TEXT,
-                    designation TEXT,
-                    phone TEXT,
-                    department_id INTEGER,
-                    password VARCHAR(50) DEFAULT 'pass_staff',
-                    mfa BOOLEAN DEFAULT 0,
-                    code VARCHAR(50) DEFAULT 'none',
-                    FOREIGN KEY(department_id) REFERENCES department(department_id)
-                );
-                """)
-                
-                # Create Timetable table
-                cursor.execute("""
-                CREATE TABLE IF NOT EXISTS timetable (
-                    timetable_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    day TEXT,
-                    time TEXT,
-                    subject TEXT,
-                    department_id INTEGER,
-                    class varchar(50),
-                    FOREIGN KEY(department_id) REFERENCES department(department_id)
-                );
-                """)
-                
-                # Create Subject table
-                cursor.execute("""
-                CREATE TABLE IF NOT EXISTS subject (
-                    subject_id TEXT PRIMARY KEY AUTOINCREMENT ,
-                    name TEXT,
-                    code TEXT,
-                    department_id INTEGER,
-                    FOREIGN KEY(department_id) REFERENCES department(department_id)
-                );
-                """)
-                
-                conn.commit()
-            except :
-                st.write("error")
-            finally:
-                conn.close()
-        
-        # Insert data into the department table
-        def add_department(department_id, name, graduate_level, phone):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-            INSERT INTO department (department_id, name, graduate_level, phone)
-            VALUES (?, ?, ?, ?);
-            """, (department_id, name, graduate_level, phone))
-            conn.commit()
-            conn.close()
-        
-        # Fetch all departments
-        def fetch_departments():
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM department;")
-            departments = cursor.fetchall()
-            conn.close()
-            return departments
-        
-        # Insert data into the staff table
-        def add_staff(staff_id, name, designation, phone, department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-            INSERT INTO staff (staff_id, name, designation, phone, department_id)
-            VALUES (?, ?, ?, ?, ?);
-            """, (staff_id, name, designation, phone, department_id))
-            conn.commit()
-            conn.close()
-            
-        # Insert data into the staff table
-        def add_admin(admin_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-            INSERT INTO staff (admin_id)
-            VALUES (?);
-            """, (admin_id))
-            conn.commit()
-            conn.close()
-        
-        # Insert data into the timetable table
-        def add_timetable(day, time, subject,class_name, department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            try:
-                cursor.execute("""
-            INSERT INTO timetable (day, time, subject, department_id,class)
-            VALUES (?, ?, ?, ?,?);
-            """, ( day, time, subject, department_id,class_name))
-                conn.commit()
-            except:
-                st.error("error")
-            finally:
-                conn.close()
-        
-        # Insert data into the subject table
-        def add_subject( name, code, department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-            INSERT INTO subject ( name, code, department_id)
-            VALUES ( ?, ?, ?);
-            """, ( name, code, department_id))
-            conn.commit()
-            conn.close()
+       
         
         # Streamlit app
         st.title("Department and Related Tables Management")
         
         # Create tables if they don't exist
-        create_main_tables()
+        operation.dboperation.create_main_tables()
         
         
         # Add a Department
@@ -266,13 +125,13 @@ def admin_page():
         
             if st.button("Add Department"):
                 if department_id and name and graduate_level and phone:
-                    add_department(department_id, name, graduate_level, phone)
+                    operation.dboperation.add_department(department_id, name, graduate_level, phone)
                     st.success(f"Department '{name}' added successfully!")
                 else:
                     st.error("Please fill all the fields.")
         
         # Display existing departments
-        departments = fetch_departments()
+        departments = operation.dboperation.fetch_departments()
         if departments:
             with st.expander("Existing Departments"):
                 for dept in departments:
@@ -294,7 +153,7 @@ def admin_page():
                 
                 if st.button("Add Staff"):
                     if staff_id and staff_name and designation and staff_phone:
-                        add_staff(staff_id, staff_name, designation, staff_phone, selected_department_id)
+                        operation.dboperation.add_staff(staff_id, staff_name, designation, staff_phone, selected_department_id)
                         st.success(f"Staff '{staff_name}' added to Department ID {selected_department_id}!")
                     else:
                         st.error("Please fill all the fields.")
@@ -324,7 +183,7 @@ def admin_page():
             #         conn.close()
             #         st.table(data)
                     if  day and time and subject:
-                        add_timetable(day, time, subject,class_name, selected_department_id)
+                        operation.dboperation.add_timetable(day, time, subject,class_name, selected_department_id)
                         st.success(f"Timetable for '{day} at {time}' added to Department ID {selected_department_id}!")
                     else:
                         st.error("Please fill all the fields.")
@@ -337,7 +196,7 @@ def admin_page():
                 
                 if st.button("Add Subject"):
                     if subject_name and subject_code:
-                        add_subject(subject_name, subject_code, selected_department_id)
+                        operation.dboperation.add_subject(subject_name, subject_code, selected_department_id)
                         st.success(f"Subject '{subject_name}' added to Department ID {selected_department_id}!")
                     else:
                         st.error("Please fill all the fields.")
@@ -348,73 +207,12 @@ def admin_page():
 
         st.title("View Section")
 
-        def create_connection():
-            return sqlite3.connect("dynamic_department.db")
         
-        # Fetch department details
-        def fetch_department_details():
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM department")
-            data = cursor.fetchall()
-            columns = [description[0] for description in cursor.description]
-            conn.close()
-            return data, columns
-        
-        # Fetch staff details
-        def fetch_staff_details(department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM staff WHERE department_id = ?", (department_id,))
-            data = cursor.fetchall()
-            columns = [description[0] for description in cursor.description]
-            conn.close()
-            return data, columns
-        
-        # Fetch timetable
-        def fetch_timetable(department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT day, time, subject FROM timetable WHERE department_id = ?", (department_id,))
-            data = cursor.fetchall()
-            conn.close()
-            return data
-        
-        # Update a record
-        def update_record(table, updates, condition):
-            conn = create_connection()
-            cursor = conn.cursor()
-            set_clause = ", ".join([f"{column} = ?" for column in updates.keys()])
-            condition_clause = " AND ".join([f"{column} = ?" for column in condition.keys()])
-            values = list(updates.values()) + list(condition.values())
-            cursor.execute(f"UPDATE {table} SET {set_clause} WHERE {condition_clause}", values)
-            conn.commit()
-            conn.close()
-        
-        # Delete a record
-        def delete_record(table, condition):
-            conn = create_connection()
-            cursor = conn.cursor()
-            condition_clause = " AND ".join([f"{column} = ?" for column in condition.keys()])
-            values = list(condition.values())
-            cursor.execute(f"DELETE FROM {table} WHERE {condition_clause}", values)
-            conn.commit()
-            conn.close()
-        
-        # Fetch subject details
-        def fetch_subject_details(department_id):
-            conn = create_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM subject WHERE department_id = ?", (department_id,))
-            data = cursor.fetchall()
-            columns = [description[0] for description in cursor.description]
-            conn.close()
-            return data, columns
         
         st.title("Dynamic Department Viewer")
         
         # Fetch department details
-        departments, department_columns = fetch_department_details()
+        departments, department_columns = operation.dboperation.fetch_department_details()
         department_dict = {row[1]: row[0] for row in departments}
         
         department_name = st.selectbox("Select Department", list(department_dict.keys()))
@@ -429,17 +227,17 @@ def admin_page():
         if st.checkbox("Edit Department Details"):
             new_name = st.text_input("New Department Name", value=department_name)
             if st.button("Update Department"):
-                update_record("department", {"name": new_name}, {"department_id": department_id})
+                operation.fileoperations.update_record("department", {"name": new_name}, {"department_id": department_id})
                 st.success("Department updated successfully.")
         
         if st.checkbox("Delete Department"):
             if st.button("Delete Department"):
-                delete_record("department", {"department_id": department_id})
+                operation.dboperation.delete_record("department", {"department_id": department_id})
                 st.success("Department deleted successfully.")
         
         # Fetch and edit staff details
         st.subheader("Staff Details")
-        staff_data, staff_columns = fetch_staff_details(department_id)
+        staff_data, staff_columns = operation.dboperation.fetch_staff_details(department_id)
         if staff_data:
             staff_df = pd.DataFrame(staff_data, columns=staff_columns)
             st.dataframe(staff_df)
@@ -463,12 +261,12 @@ def admin_page():
             if submit_button:
                 # For each field in the form, update the record
                 updates = {column: new_value}  # You may need to handle more columns if updating multiple fields
-                update_record("staff", updates, {"staff_id": staff_id})
+                operation.dboperation.update_record("staff", updates, {"staff_id": staff_id})
                 st.success("Staff updated successfully.")
 
         
             if st.button("Delete Staff"):
-                delete_record("staff", {"staff_id": staff_id})
+                operation.dboperation.delete_record("staff", {"staff_id": staff_id})
                 st.success("Staff deleted successfully.")
         else:
             st.warning("No staff found for this department.")
@@ -476,7 +274,7 @@ def admin_page():
         # Fetch and display timetable
        # Fetch and display timetable
         st.subheader("Timetable Details")
-        timetable_data = fetch_timetable(department_id)
+        timetable_data = operation.dboperation.fetch_timetable(department_id)
         if timetable_data:
             timetable_df = pd.DataFrame(timetable_data, columns=["Day", "Time", "Subject"])
             
@@ -492,7 +290,7 @@ def admin_page():
         # Subject details
         st.subheader("Subject Details")
         if st.button("View Subject Details"):
-            data, columns = fetch_subject_details(department_id)
+            data, columns = operation.dboperation.fetch_subject_details(department_id)
             if data:
                 st.write(f"Subject Details for Department: {department_name}")
                 st.dataframe(pd.DataFrame(data, columns=columns))
@@ -505,20 +303,20 @@ def admin_page():
             column_name = st.selectbox("Select column to update", columns)
             subject_id = st.number_input("Enter Subject ID", min_value=1, step=1)
             if st.button("Update Subject"):
-                update_record("subject", {column_name: new_value}, {"subject_id": subject_id})
+                operation.dboperation.update_record("subject", {column_name: new_value}, {"subject_id": subject_id})
                 st.success("Subject details updated successfully.")
         
         if st.checkbox("Delete Subject"):
             subject_id = st.number_input("Enter Subject ID for deletion", min_value=1, step=1)
             if st.button("Delete Subject"):
-                delete_record("subject", {"subject_id": subject_id})
+                operation.dboperation.delete_record("subject", {"subject_id": subject_id})
                 st.success("Subject deleted successfully.")
                 
     elif module == "admin data":
         st.subheader("admin")
         admin_id = st.text_input("enter the admin ID")
         if admin_id:
-            add_admin(admin_id)
+            operation.dboperation.add_admin(admin_id)
     elif module == "Logout":
         st.session_state.authenticated = False
         st.session_state.page = "login"
