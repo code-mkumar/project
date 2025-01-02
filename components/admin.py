@@ -6,7 +6,7 @@ import operation.dboperation
 import operation.fileoperations
 def admin_page():
     # st.set_page_config(page_title="Admin Dashboard", layout="wide")
-    secret, role, name = operation.dboperation.get_user_details(st.session_state.user_id)
+    secret, role, name = None#operation.dboperation.get_user_details(st.session_state.user_id)
     operation.dboperation.update_multifactor_status(st.session_state.user_id, st.session_state.multifactor ,secret)  # Update MFA status in the database
     # Sidebar content
     with st.sidebar:
