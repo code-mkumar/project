@@ -1,23 +1,24 @@
 import streamlit as st
 import operation
 import operation.dboperation
+#import operation.dboperation
 def login_page():
     st.set_page_config(page_title="Login")
     st.title("Login")
     user_id = st.text_input("User ID")
-    role = get_role(user_id)
+    role = operation.dboperation.get_role(user_id)
     dob=''
     password=''
     if role == "student_details":
         dob = st.date_input()
-    else
+    else:
         password = st.text_input("Password", type="password")
 
     if st.button("Login"):
         if user and (password or dob):
             # st.session_state.authenticated = True
             st.session_state.user_id = user_id
-            user = check_user(user_id,password,role)
+            user = operation.dboperation.check_user(user_id,password,role)
             if not user:    
             # st.session_state.multifactor = user[8]  # Multifactor column
             # st.session_state.secret = user[9]  # Secret code column

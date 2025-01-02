@@ -1,7 +1,10 @@
 import sqlite3
-import fileoperation
+import operation.fileoperations
+import os
 def create_connection():
-    return sqlite3.connect("../dbs/university.db")
+    
+    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../dbs/university.db"))
+    return sqlite3.connect(db_path)
     
 def create_tables():
     # Connect to SQLite database (or create it if it doesn't exist)
@@ -366,6 +369,7 @@ def delete_admin(admin_id):
 # Function to add a new student
 def add_student(name, date_of_birth, department_id, class_name, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
     conn = create_connection()
+    cursor=conn.cursor()
     query = """
     INSERT INTO student_details (name, date_of_birth, department_id, class, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -421,7 +425,7 @@ def delete_student(student_id):
 
 
 # Function to add a new staff
-def add_staff(name, designation, department_id, password, mfa=False, secd=False, phone_no, email):
+def add_staff(name, designation, department_id, password, mfa=False, secd=False, phone_no=None, email=None):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
@@ -469,21 +473,21 @@ def delete_staff(staff_id):
 
 
 # Function to add a new department
-def add_department(name, grad_level, phone):
+def add_department(department_id,name, grad_level, phone):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
-    INSERT INTO department_details (name, grad_level, phone)
-    VALUES (?, ?, ?);
+    INSERT INTO department_details (id,name, grad_level, phone)
+    VALUES (?, ?, ?,?);
     """
-    cursor.execute(query, (name, grad_level, phone))
+    cursor.execute(query, (department_id,name, grad_level, phone))
     conn.commit()
     conn.close()
-    
+    file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/{name}_department.txt"))
     filename = f"{name}_department.txt"
     department_info = f"Department: {name}\nGraduation Level: {grad_level}\nPhone: {phone}"  
     # Write department details to the file
-    fileoperation.write_to_file(filename, department_info)
+    operation.fileoperations.write_to_file(file_path, department_info)
     
     print("Department added successfully.")
 

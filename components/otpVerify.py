@@ -1,7 +1,7 @@
 import streamlit as st
 import operation
-import operation.dboperation
-import operation.fileoperations
+# import operation.dboperation
+# import operation.fileoperations
 import operation.qrsetter
 def otp_verification_page():
     # st.set_page_config(page_title="verify")

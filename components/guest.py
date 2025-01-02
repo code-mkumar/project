@@ -1,8 +1,8 @@
 import streamlit as st
 import genai.gemini
 import operation
-import operation.dboperation
-import operation.fileoperations
+# import operation.dboperation
+# import operation.fileoperations
 import operation.preprocessing
 import json
 import genai
@@ -21,7 +21,7 @@ def guest_page():
     # Sidebar for navigation and displaying past Q&A
     with st.sidebar:
         if st.button("Go to Login"):
-            st.session_state.page = "login"
+            st.session_state.page = "admin"
             st.rerun()
 
         for qa in reversed(st.session_state.qa_list):

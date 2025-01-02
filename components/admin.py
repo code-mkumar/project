@@ -3,11 +3,12 @@ import os
 import sqlite3
 import operation
 import operation.dboperation
-import operation.fileoperations
+#import operation.dboperation
+#import operation.fileoperations
 def admin_page():
     # st.set_page_config(page_title="Admin Dashboard", layout="wide")
-    secret, role, name = None#operation.dboperation.get_user_details(st.session_state.user_id)
-    operation.dboperation.update_multifactor_status(st.session_state.user_id, st.session_state.multifactor ,secret)  # Update MFA status in the database
+    # secret, role, name = None#operation.dboperation.get_user_details(st.session_state.user_id)
+    # operation.dboperation.update_multifactor_status(st.session_state.user_id, st.session_state.multifactor ,secret)  # Update MFA status in the database
     # Sidebar content
     with st.sidebar:
         st.header("Admin Modules")
@@ -19,7 +20,7 @@ def admin_page():
 
     # Main page content
     st.title("Admin Dashboard")
-    st.write(f"Welcome, {name}! 👋")
+    st.write(f"Welcome, admin! 👋")
 
     
 # Ensure required files exist
@@ -113,7 +114,9 @@ def admin_page():
         st.title("Department and Related Tables Management")
         
         # Create tables if they don't exist
-        operation.dboperation.create_main_tables()
+        # operation.dboperation.create_main_tables()
+        if st.button('create table'):
+            operation.dboperation.create_tables()
         
         
         # Add a Department
@@ -125,81 +128,82 @@ def admin_page():
         
             if st.button("Add Department"):
                 if department_id and name and graduate_level and phone:
-                    operation.dboperation.add_department(department_id, name, graduate_level, phone)
+                    operation.dboperation.add_department(department_id,name,graduate_level,phone)
                     st.success(f"Department '{name}' added successfully!")
                 else:
                     st.error("Please fill all the fields.")
         
-        # Display existing departments
-        departments = operation.dboperation.fetch_departments()
-        if departments:
-            with st.expander("Existing Departments"):
-                for dept in departments:
-                    st.write(f"ID: {dept[0]}, Name: {dept[1]}, Graduate Level: {dept[2]}, Phone: {dept[3]}")
+        # # Display existing departments
+        # departments = None #operation.dboperation.fetch_departments()
+        # if departments:
+        #     with st.expander("Existing Departments"):
+        #         for dept in departments:
+        #             st.write(f"ID: {dept[0]}, Name: {dept[1]}, Graduate Level: {dept[2]}, Phone: {dept[3]}")
         
-            # Select a department ID for further actions
-            selected_department_id = st.selectbox(
-                "Select Department ID for Adding Staff, Timetable, or Subjects:", 
-                [dept[0] for dept in departments]
-            )
-            selected_dept = next((dept for dept in departments if dept[0] == selected_department_id), None)
-            graduate_level = selected_dept[2]
-            # Add Staff to the selected department
-            with st.expander("Add Staff to Selected Department"):
-                staff_id = st.text_input("Staff Id:")
-                staff_name = st.text_input("Staff Name:")
-                designation = st.text_input("Designation:")
-                staff_phone = st.text_input("Phone:")
+        #     # Select a department ID for further actions
+        #     selected_department_id = st.selectbox(
+        #         "Select Department ID for Adding Staff, Timetable, or Subjects:", 
+        #         [dept[0] for dept in departments]
+        #     )
+        #     selected_dept = next((dept for dept in departments if dept[0] == selected_department_id), None)
+        #     graduate_level = selected_dept[2]
+        #     # Add Staff to the selected department
+        #     with st.expander("Add Staff to Selected Department"):
+        #         staff_id = st.text_input("Staff Id:")
+        #         staff_name = st.text_input("Staff Name:")
+        #         designation = st.text_input("Designation:")
+        #         staff_phone = st.text_input("Phone:")
                 
-                if st.button("Add Staff"):
-                    if staff_id and staff_name and designation and staff_phone:
-                        operation.dboperation.add_staff(staff_id, staff_name, designation, staff_phone, selected_department_id)
-                        st.success(f"Staff '{staff_name}' added to Department ID {selected_department_id}!")
-                    else:
-                        st.error("Please fill all the fields.")
+        #         if st.button("Add Staff"):
+        #             pass
+        #             # if staff_id and staff_name and designation and staff_phone:
+        #             #     #operation.dboperation.add_staff(staff_id, staff_name, designation, staff_phone, selected_department_id)
+        #             #     st.success(f"Staff '{staff_name}' added to Department ID {selected_department_id}!")
+        #             # else:
+        #             #     st.error("Please fill all the fields.")
         
-            # Add Timetable to the selected department
-            with st.expander("Add Timetable to Selected Department"):
-                # timetable_id = st.text_input("Time Table Id:")
-                day = st.selectbox("day:",["monday","tuesday","wednesday","thursday","friday","saturday"])
-                if day =="saturday":
-                    time = st.selectbox("Time:",["9.00-9.45","9.45-10.30","10.30-11.15","11.20-12.10","12.10-1.00"])
-                else:
-                    time = st.selectbox("Time:",["10-11","11-12","12-1","2-3","3-4","4-5"])
-                subject = st.text_input("Subject:")
+        #     # Add Timetable to the selected department
+        #     with st.expander("Add Timetable to Selected Department"):
+        #         # timetable_id = st.text_input("Time Table Id:")
+        #         day = st.selectbox("day:",["monday","tuesday","wednesday","thursday","friday","saturday"])
+        #         if day =="saturday":
+        #             time = st.selectbox("Time:",["9.00-9.45","9.45-10.30","10.30-11.15","11.20-12.10","12.10-1.00"])
+        #         else:
+        #             time = st.selectbox("Time:",["10-11","11-12","12-1","2-3","3-4","4-5"])
+        #         subject = st.text_input("Subject:")
         
-                if graduate_level == "PG": 
-                    class_name = st.selectbox("Class:", ["I", "II"]) 
-                else: 
-                    class_name = st.selectbox("Class:", ["I", "II", "III"])
+        #         if graduate_level == "PG": 
+        #             class_name = st.selectbox("Class:", ["I", "II"]) 
+        #         else: 
+        #             class_name = st.selectbox("Class:", ["I", "II", "III"])
                 
-                if st.button("Add Timetable"):
-            #         conn = create_connection()
-            #         cursor = conn.cursor()
-            #         data = cursor.execute("""
-            # select * from timetable;
-            # """)
-            #         conn.commit()
-            #         conn.close()
-            #         st.table(data)
-                    if  day and time and subject:
-                        operation.dboperation.add_timetable(day, time, subject,class_name, selected_department_id)
-                        st.success(f"Timetable for '{day} at {time}' added to Department ID {selected_department_id}!")
-                    else:
-                        st.error("Please fill all the fields.")
+        #         if st.button("Add Timetable"):
+        #     #         conn = create_connection()
+        #     #         cursor = conn.cursor()
+        #     #         data = cursor.execute("""
+        #     # select * from timetable;
+        #     # """)
+        #     #         conn.commit()
+        #     #         conn.close()
+        #     #         st.table(data)
+        #             if  day and time and subject:
+        #                 #operation.dboperation.add_timetable(day, time, subject,class_name, selected_department_id)
+        #                 st.success(f"Timetable for '{day} at {time}' added to Department ID {selected_department_id}!")
+        #             else:
+        #                 st.error("Please fill all the fields.")
         
-            # Add Subject to the selected department
-            with st.expander("Add Subject to Selected Department"):
+        #     # Add Subject to the selected department
+        #     with st.expander("Add Subject to Selected Department"):
                
-                subject_name = st.text_input("Subject Name:")
-                subject_code = st.text_input("Subject Code:")
+        #         subject_name = st.text_input("Subject Name:")
+        #         subject_code = st.text_input("Subject Code:")
                 
-                if st.button("Add Subject"):
-                    if subject_name and subject_code:
-                        operation.dboperation.add_subject(subject_name, subject_code, selected_department_id)
-                        st.success(f"Subject '{subject_name}' added to Department ID {selected_department_id}!")
-                    else:
-                        st.error("Please fill all the fields.")
+        #         if st.button("Add Subject"):
+        #             if subject_name and subject_code:
+        #                 #operation.dboperation.add_subject(subject_name, subject_code, selected_department_id)
+        #                 st.success(f"Subject '{subject_name}' added to Department ID {selected_department_id}!")
+        #             else:
+        #                 st.error("Please fill all the fields.")
 
 
     elif module == "Query Area":
@@ -212,7 +216,7 @@ def admin_page():
         st.title("Dynamic Department Viewer")
         
         # Fetch department details
-        departments, department_columns = operation.dboperation.fetch_department_details()
+        departments, department_columns = None #operation.dboperation.fetch_department_details()
         department_dict = {row[1]: row[0] for row in departments}
         
         department_name = st.selectbox("Select Department", list(department_dict.keys()))
@@ -227,17 +231,17 @@ def admin_page():
         if st.checkbox("Edit Department Details"):
             new_name = st.text_input("New Department Name", value=department_name)
             if st.button("Update Department"):
-                operation.fileoperations.update_record("department", {"name": new_name}, {"department_id": department_id})
+                #operation.fileoperations.update_record("department", {"name": new_name}, {"department_id": department_id})
                 st.success("Department updated successfully.")
         
         if st.checkbox("Delete Department"):
             if st.button("Delete Department"):
-                operation.dboperation.delete_record("department", {"department_id": department_id})
+                #operation.dboperation.delete_record("department", {"department_id": department_id})
                 st.success("Department deleted successfully.")
         
         # Fetch and edit staff details
         st.subheader("Staff Details")
-        staff_data, staff_columns = operation.dboperation.fetch_staff_details(department_id)
+        staff_data, staff_columns = None#operation.dboperation.fetch_staff_details(department_id)
         if staff_data:
             staff_df = pd.DataFrame(staff_data, columns=staff_columns)
             st.dataframe(staff_df)
@@ -261,12 +265,12 @@ def admin_page():
             if submit_button:
                 # For each field in the form, update the record
                 updates = {column: new_value}  # You may need to handle more columns if updating multiple fields
-                operation.dboperation.update_record("staff", updates, {"staff_id": staff_id})
+                #operation.dboperation.update_record("staff", updates, {"staff_id": staff_id})
                 st.success("Staff updated successfully.")
 
         
             if st.button("Delete Staff"):
-                operation.dboperation.delete_record("staff", {"staff_id": staff_id})
+                #operation.dboperation.delete_record("staff", {"staff_id": staff_id})
                 st.success("Staff deleted successfully.")
         else:
             st.warning("No staff found for this department.")
@@ -274,7 +278,7 @@ def admin_page():
         # Fetch and display timetable
        # Fetch and display timetable
         st.subheader("Timetable Details")
-        timetable_data = operation.dboperation.fetch_timetable(department_id)
+        timetable_data = None #operation.dboperation.fetch_timetable(department_id)
         if timetable_data:
             timetable_df = pd.DataFrame(timetable_data, columns=["Day", "Time", "Subject"])
             
@@ -290,7 +294,7 @@ def admin_page():
         # Subject details
         st.subheader("Subject Details")
         if st.button("View Subject Details"):
-            data, columns = operation.dboperation.fetch_subject_details(department_id)
+            data, columns = None #operation.dboperation.fetch_subject_details(department_id)
             if data:
                 st.write(f"Subject Details for Department: {department_name}")
                 st.dataframe(pd.DataFrame(data, columns=columns))
@@ -303,20 +307,21 @@ def admin_page():
             column_name = st.selectbox("Select column to update", columns)
             subject_id = st.number_input("Enter Subject ID", min_value=1, step=1)
             if st.button("Update Subject"):
-                operation.dboperation.update_record("subject", {column_name: new_value}, {"subject_id": subject_id})
+                #operation.dboperation.update_record("subject", {column_name: new_value}, {"subject_id": subject_id})
                 st.success("Subject details updated successfully.")
         
         if st.checkbox("Delete Subject"):
             subject_id = st.number_input("Enter Subject ID for deletion", min_value=1, step=1)
             if st.button("Delete Subject"):
-                operation.dboperation.delete_record("subject", {"subject_id": subject_id})
+                #operation.dboperation.delete_record("subject", {"subject_id": subject_id})
                 st.success("Subject deleted successfully.")
                 
     elif module == "admin data":
         st.subheader("admin")
         admin_id = st.text_input("enter the admin ID")
         if admin_id:
-            operation.dboperation.add_admin(admin_id)
+            #operation.dboperation.add_admin(admin_id)
+            pass
     elif module == "Logout":
         st.session_state.authenticated = False
         st.session_state.page = "login"

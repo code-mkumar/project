@@ -1,7 +1,7 @@
 import streamlit as st
 import genai.gemini
 import operation
-import operation.dboperation
+# import operation.dboperation
 import operation.preprocessing
 import operation.qrsetter
 import genai
