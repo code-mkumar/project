@@ -2,33 +2,266 @@ import sqlite3
 
 def create_connection():
     return sqlite3.connect("../dbs/university.db")
-
-
-def get_role():
-    pass
     
-def check_user():
-    pass
-
-def mfa_update():
-    pass
-
-def serectcode_update():
-    pass
-    
-def clear_mfa():
-    pass
-
-
-def get_user_details(user_id):
-
-    # use the condition to check all the table with user_id
+def create_tables():
+    # Connect to SQLite database (or create it if it doesn't exist)
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT secret_code, role, name FROM user_detail WHERE id = ?", (user_id,))
-    result = cursor.fetchone()
+
+    # SQL statements to create tables
+    table_creation_queries = [
+        """
+        CREATE TABLE IF NOT EXISTS student_details (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            dob DATE NOT NULL,
+            department_id TEXT NOT NULL,
+            class TEXT NOT NULL,
+            quiz1 FLOAT ,
+            quiz2 FLOAT,
+            quiz3 FLOAT,
+            assignment1 FLOAT,
+            assignment2 FLOAT,
+            internal1 FLOAT,
+            internal2 FLOAT,
+            internal3 FLOAT
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS staff_details (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            designation TEXT NOT NULL,
+            department_id TEXT NOT NULL,
+            password TEXT NOT NULL DEFAULT pass_staff ,
+            mfa BOOLEAN DEFAULT 0,
+            secd TEXT DEFAULT NONE,
+            phone_no INTEGER NOT NULL,
+            email TEXT NOT NULL UNIQUE
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS department_details (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            grad_level TEXT NOT NULL,
+            phone TEXT NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS admin_details (
+            id TEXT PRIMARY KEY,
+            password TEXT NOT NULL DEFAULT pass_admin,
+            mfa BOOLEAN DEFAULT 0,
+            secd TEXT DEFAULT NONE
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            message TEXT NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS subject (
+            id TEXT PRIMARY KEY,
+            department_id INTEGER NOT NULL,
+            name TEXT NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS timetable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            day TEXT NOT NULL,
+            time TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            class TEXT NOT NULL,
+            department_id INTEGER NOT NULL
+        );
+        """
+    ]
+
+    # Execute all queries
+    for query in table_creation_queries:
+        cursor.execute(query)
+
+    # Commit and close the connection
+    conn.commit()
     conn.close()
-    return result if result else (None, None, None)
+
+
+# function to get the user role
+def get_role(user_id):
+    conn = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        role = ''
+        tables = ['student_details', 'staff_details', 'admin_details']
+        
+        for table in tables:
+            cursor.execute(f'SELECT 1 FROM {table} WHERE id = ?', (user_id,))
+            if cursor.fetchone():  # Checks if any row is returned
+                role = table
+                break
+        
+        return role
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
+# funtcion to verify the user password
+def check_user(user_id, password, role):
+    conn = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        query = ""
+        
+        # Validate role to prevent SQL injection
+        if role not in ['student_details', 'staff_details', 'admin_details']:
+            raise ValueError("Invalid role specified.")
+
+        # Construct query based on role
+        if role == 'student_details':
+            query = f'SELECT * FROM {role} WHERE id = ? AND dob = ?'
+        else:
+            query = f'SELECT * FROM {role} WHERE id = ? AND password = ?'
+        
+        # Execute the query
+        cursor.execute(query, (user_id, password))
+        data = cursor.fetchone()
+        
+        return data
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+    except ValueError as ve:
+        print(f"Value error: {ve}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
+# enabling or disabling the mfa
+def mfa_update(user_id, role, status):
+    conn = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Validate role to prevent SQL injection
+        if role not in ['staff_details', 'admin_details']:
+            raise ValueError("Invalid role specified.")
+
+        # Validate status as integer or boolean (convert to 1/0 for boolean)
+        if not isinstance(status, (int, bool)):
+            raise ValueError("Invalid status type. Must be an integer or boolean.")
+        status = int(status)
+
+        # Construct and execute the query
+        query = f"UPDATE {role} SET mfa = ? WHERE id = ?"
+        cursor.execute(query, (status, user_id))
+        conn.commit()
+        
+        return "success"
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return "failed"
+    except ValueError as ve:
+        print(f"Value error: {ve}")
+        return "failed"
+    finally:
+        if conn:
+            conn.close()
+
+#function to update the serect code
+def serectcode_update(user_id, secret, role):
+    conn = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Validate role to prevent SQL injection
+        if role not in ['staff_details', 'admin_details']:
+            raise ValueError("Invalid role specified.")
+
+        # Validate secret as a string (assuming it's a secret code, not a boolean or integer)
+        if not isinstance(secret, str) or len(secret) == 0:
+            raise ValueError("Invalid secret type. Must be a non-empty string.")
+
+        # Construct and execute the query with conditional MFA check
+        query = f"UPDATE {role} SET secd = ? WHERE id = ? AND mfa = 1"
+        cursor.execute(query, (secret, user_id))
+        conn.commit()
+        
+        return "success"
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return "failed"
+    except ValueError as ve:
+        print(f"Value error: {ve}")
+        return "failed"
+    finally:
+        if conn:
+            conn.close()
+
+#remove and disable the mfa
+def clear_mfa(user_id, role):
+    conn = None
+    try:
+        # Validate role to prevent SQL injection
+        if role not in ['staff_details', 'admin_details']:
+            raise ValueError("Invalid role specified.")
+        
+        # Establish the database connection
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Construct and execute the query to clear MFA
+        query = f"UPDATE {role} SET secd = 'None', mfa = 0 WHERE id = ? AND mfa = 1"
+        cursor.execute(query, (user_id,))
+        conn.commit()
+
+        return "success"
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return "failed"
+    except ValueError as ve:
+        print(f"Value error: {ve}")
+        return "failed"
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return "failed"
+    finally:
+        if conn:
+            conn.close()
+
+
+#user details by user id 
+def get_user_details(user_id):
+    conn = None
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        tables = ['student_details', 'staff_details', 'admin_details']
+        data=''
+        for table in tables:
+            cursor.execute(f'SELECT * FROM {table} WHERE id = ?', (user_id,))
+            data = cursor.fetchone()
+        return data
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
 
 def read_sql_query(sql):
     try:
@@ -46,31 +279,6 @@ def read_sql_query(sql):
         print(e)
         return f"SQLite error: {e}"
 
-def update_multifactor_status(user_id, status, secret):
-    conn = create_connection()
-    cursor = conn.cursor()
-
-    # Update the multifactor status
-    cursor.execute("UPDATE user_detail SET multifactor = ? WHERE id = ?", (status, user_id))
-    multifactor_updated = cursor.rowcount  # Rows affected by the first query
-
-    # Update the secret code
-    cursor.execute("UPDATE user_detail SET secret_code = ? WHERE id = ?", (secret, user_id))
-    secret_updated = cursor.rowcount  # Rows affected by the second query
-
-    # Commit the changes
-    conn.commit()
-    conn.close()
-
-    # Verify updates
-    if multifactor_updated > 0 and secret_updated > 0:
-        return 1
-    elif multifactor_updated > 0:
-        return 0
-    elif secret_updated > 0:
-        return 0
-    else:
-        return -1
 
 def change_pass(password,user_id):
     conn = create_connection()
@@ -79,79 +287,38 @@ def change_pass(password,user_id):
     conn.commit()
     conn.close()
 
-
-#  # SQLite connection function
-# def create_connection_new():
-#     return sqlite3.connect("dynamic_department.db")
-
-# Create tables for departments, staff, timetable, and subjects
-def create_main_tables():
-    conn = create_connection()
-    cursor = conn.cursor()
+# incrementing the class and delete the final 
+def incrementing_class():
+    conn = None
     try:
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS admin (
-            admin_id VARCHAR(50) PRIMARY KEY,
-            password VARCHAR(50) DEFAULT 'admin_pass',
-            mfa BOOLEAN DEFAULT 0,
-            code VARCHAR(50) DEFAULT 'none'
-        );
-        """)
-        # Create Department table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS department (
-            department_id VARCHAR(50) PRIMARY KEY,
-            name TEXT,
-            graduate_level TEXT,
-            phone TEXT
-            
-        );
-        """)
-        
-        # Create Staff table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS staff (
-            staff_id TEXT PRIMARY KEY,
-            name TEXT,
-            designation TEXT,
-            phone TEXT,
-            department_id INTEGER,
-            password VARCHAR(50) DEFAULT 'pass_staff',
-            mfa BOOLEAN DEFAULT 0,
-            code VARCHAR(50) DEFAULT 'none',
-            FOREIGN KEY(department_id) REFERENCES department(department_id)
-        );
-        """)
-        
-        # Create Timetable table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS timetable (
-            timetable_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            day TEXT,
-            time TEXT,
-            subject TEXT,
-            department_id INTEGER,
-            class varchar(50),
-            FOREIGN KEY(department_id) REFERENCES department(department_id)
-        );
-        """)
-        
-        # Create Subject table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS subject (
-            subject_id TEXT PRIMARY KEY AUTOINCREMENT ,
-            name TEXT,
-            code TEXT,
-            department_id INTEGER,
-            FOREIGN KEY(department_id) REFERENCES department(department_id)
-        );
-        """)
-        
+        # Establish the database connection
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        # Delete students who are in their final year (class III)
+        query_delete_final_year = "DELETE FROM student_details WHERE class = 'III'"
+        cursor.execute(query_delete_final_year)
+
+        # Increment class from I to II
+        query_update_I_to_II = "UPDATE student_details SET class = 'II' WHERE class = 'I'"
+        cursor.execute(query_update_I_to_II)
+
+        # Increment class from II to III
+        query_update_II_to_III = "UPDATE student_details SET class = 'III' WHERE class = 'II'"
+        cursor.execute(query_update_II_to_III)
+
+        # Commit the changes to the database
         conn.commit()
-    except :
-        pass
+        return "success"
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return "failed"
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return "failed"
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 # Insert data into the department table
 def add_department(department_id, name, graduate_level, phone):
