@@ -3,6 +3,23 @@ import sqlite3
 def create_connection():
     return sqlite3.connect("../dbs/university.db")
 
+
+def get_role():
+    pass
+    
+def check_user():
+    pass
+
+def mfa_update():
+    pass
+
+def serectcode_update():
+    pass
+    
+def clear_mfa():
+    pass
+
+
 def get_user_details(user_id):
 
     # use the condition to check all the table with user_id
