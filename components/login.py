@@ -5,19 +5,17 @@ def login_page():
     # st.set_page_config(page_title="Login")
     st.title("Login")
     user_id = st.text_input("User ID")
-    # role = operation.dboperation.get_user_details(user_id)
-    #if role == "student":
-    #   st.date_input
-    #else
-    password = st.text_input("Password", type="password")
+    role = ""#operation.dboperation.get_user_role(user_id)
+    dob=''
+    password=''
+    if role == "student":
+        dob = st.date_input()
+    else
+        password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        conn = operation.dboperation.create_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM user_detail WHERE id = ? AND password = ?", (user_id, password))
-        user = cursor.fetchone()
-        conn.close()
-
+        if role == 'student':
+            pass
         if user:
             st.session_state.authenticated = True
             st.session_state.user_id = user_id
