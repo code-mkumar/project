@@ -1,5 +1,5 @@
 import sqlite3
-
+import fileoperation
 def create_connection():
     return sqlite3.connect("../dbs/university.db")
     
@@ -320,133 +320,455 @@ def incrementing_class():
         if conn:
             conn.close()
 
-# Insert data into the department table
-def add_department(department_id, name, graduate_level, phone):
+# Function to add a new admin
+def add_admin(password, mfa=False, secd=False):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO department (department_id, name, graduate_level, phone)
-    VALUES (?, ?, ?, ?);
-    """, (department_id, name, graduate_level, phone))
+    query = """
+    INSERT INTO admin_details (password, mfa, secd)
+    VALUES (?, ?, ?);
+    """
+    cursor.execute(query, (password, mfa, secd))
     conn.commit()
     conn.close()
+    print("Admin added successfully.")
 
-# Fetch all departments
-def fetch_departments():
+# Function to view admins
+def view_admins():
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM department;")
+    query = "SELECT * FROM admin_details;"
+    cursor.execute(query)
+    admins = cursor.fetchall()
+    conn.close()
+    return admins
+
+# Function to update an admin's password
+def update_admin_password(admin_id, new_password):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "UPDATE admin_details SET password = ? WHERE id = ?;"
+    cursor.execute(query, (new_password, admin_id))
+    conn.commit()
+    conn.close()
+    print(f"Admin {admin_id} password updated.")
+
+# Function to delete an admin
+def delete_admin(admin_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM admin_details WHERE id = ?;"
+    cursor.execute(query, (admin_id,))
+    conn.commit()
+    conn.close()
+    print(f"Admin {admin_id} deleted.")
+
+# Function to add a new student
+def add_student(name, date_of_birth, department_id, class_name, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
+    conn = create_connection()
+    query = """
+    INSERT INTO student_details (name, date_of_birth, department_id, class, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    """
+    cursor.execute(query, (name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3))
+    conn.commit()
+    conn.close()
+    print(f"Student {name} added successfully.")
+
+# Function to view all students
+def view_students():
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM student_details;"
+    cursor.execute(query)
+    students = cursor.fetchall()
+    conn.close()
+    return students
+
+# Function to view a specific student by ID
+def view_student(student_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM student_details WHERE id = ?;"
+    cursor.execute(query, (student_id,))
+    student = cursor.fetchone()
+    conn.close()
+    return student
+
+# Function to update student details
+def update_student(student_id, name=None, date_of_birth=None, department_id=None, class_name=None, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    UPDATE student_details
+    SET name = ?, date_of_birth = ?, department_id = ?, class = ?, quiz1 = ?, quiz2 = ?, quiz3 = ?, assignment1 = ?, assignment2 = ?, internal1 = ?, internal2 = ?, internal3 = ?
+    WHERE id = ?;
+    """
+    cursor.execute(query, (name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3, student_id))
+    conn.commit()
+    conn.close()
+    print(f"Student {student_id} details updated.")
+
+# Function to delete a student by ID
+def delete_student(student_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM student_details WHERE id = ?;"
+    cursor.execute(query, (student_id,))
+    conn.commit()
+    conn.close()
+    print(f"Student {student_id} deleted.")
+
+
+# Function to add a new staff
+def add_staff(name, designation, department_id, password, mfa=False, secd=False, phone_no, email):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO staff_details (name, designation, department_id, password, mfa, secd, phone_no, email)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    """
+    cursor.execute(query, (name, designation, department_id, password, mfa, secd, phone_no, email))
+    conn.commit()
+    conn.close()
+    print("Staff added successfully.")
+
+# Function to view staff
+def view_staff():
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM staff_details;"
+    cursor.execute(query)
+    staff = cursor.fetchall()
+    conn.close()
+    return staff
+
+# Function to update staff details
+def update_staff(staff_id, name=None, designation=None, department_id=None, password=None, mfa=None, secd=None, phone_no=None, email=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    UPDATE staff_details
+    SET name = ?, designation = ?, department_id = ?, password = ?, mfa = ?, secd = ?, phone_no = ?, email = ?
+    WHERE id = ?;
+    """
+    cursor.execute(query, (name, designation, department_id, password, mfa, secd, phone_no, email, staff_id))
+    conn.commit()
+    conn.close()
+    print(f"Staff {staff_id} details updated.")
+
+# Function to delete a staff member
+def delete_staff(staff_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM staff_details WHERE id = ?;"
+    cursor.execute(query, (staff_id,))
+    conn.commit()
+    conn.close()
+    print(f"Staff {staff_id} deleted.")
+
+
+# Function to add a new department
+def add_department(name, grad_level, phone):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO department_details (name, grad_level, phone)
+    VALUES (?, ?, ?);
+    """
+    cursor.execute(query, (name, grad_level, phone))
+    conn.commit()
+    conn.close()
+    
+    filename = f"{name}_department.txt"
+    department_info = f"Department: {name}\nGraduation Level: {grad_level}\nPhone: {phone}"  
+    # Write department details to the file
+    fileoperation.write_to_file(filename, department_info)
+    
+    print("Department added successfully.")
+
+# Function to view departments
+def view_departments():
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM department_details;"
+    cursor.execute(query)
     departments = cursor.fetchall()
     conn.close()
     return departments
 
-# Insert data into the staff table
-def add_staff(staff_id, name, designation, phone, department_id):
+# Function to update department details
+def update_department(department_id, name=None, grad_level=None, phone=None):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO staff (staff_id, name, designation, phone, department_id)
+    query = """
+    UPDATE department_details
+    SET name = ?, grad_level = ?, phone = ?
+    WHERE id = ?;
+    """
+    cursor.execute(query, (name, grad_level, phone, department_id))
+    conn.commit()
+    conn.close()
+    print(f"Department {department_id} details updated.")
+
+# Function to delete a department
+def delete_department(department_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM department_details WHERE id = ?;"
+    cursor.execute(query, (department_id,))
+    conn.commit()
+    conn.close()
+    print(f"Department {department_id} deleted.")
+
+
+# Function to add a new subject
+def add_subject(department_id, name):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO subject (department_id, name)
+    VALUES (?, ?);
+    """
+    cursor.execute(query, (department_id, name))
+    conn.commit()
+    conn.close()
+    print("Subject added successfully.")
+
+# Function to view subjects
+def view_subjects():
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM subject;"
+    cursor.execute(query)
+    subjects = cursor.fetchall()
+    conn.close()
+    return subjects
+
+# Function to update subject details
+def update_subject(subject_id, department_id=None, name=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    UPDATE subject
+    SET department_id = ?, name = ?
+    WHERE id = ?;
+    """
+    cursor.execute(query, (department_id, name, subject_id))
+    conn.commit()
+    conn.close()
+    print(f"Subject {subject_id} updated.")
+
+# Function to delete a subject
+def delete_subject(subject_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM subject WHERE id = ?;"
+    cursor.execute(query, (subject_id,))
+    conn.commit()
+    conn.close()
+    print(f"Subject {subject_id} deleted.")
+
+
+# Function to add a new timetable entry
+def add_timetable(day, time, subject, class_name, department_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO timetable (day, time, subject, class, department_id)
     VALUES (?, ?, ?, ?, ?);
-    """, (staff_id, name, designation, phone, department_id))
+    """
+    cursor.execute(query, (day, time, subject, class_name, department_id))
     conn.commit()
     conn.close()
+    print("Timetable entry added successfully.")
+
+# Function to view timetable entries
+def view_timetable():
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM timetable;"
+    cursor.execute(query)
+    timetable = cursor.fetchall()
+    conn.close()
+    return timetable
+
+# Function to update a timetable entry
+def update_timetable(timetable_id, day=None, time=None, subject=None, class_name=None, department_id=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = """
+    UPDATE timetable
+    SET day = ?, time = ?, subject = ?, class = ?, department_id = ?
+    WHERE id = ?;
+    """
+    cursor.execute(query, (day, time, subject, class_name, department_id, timetable_id))
+    conn.commit()
+    conn.close()
+    print(f"Timetable entry {timetable_id} updated.")
+
+# Function to delete a timetable entry
+def delete_timetable(timetable_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "DELETE FROM timetable WHERE id = ?;"
+    cursor.execute(query, (timetable_id,))
+    conn.commit()
+    conn.close()
+    print(f"Timetable entry {timetable_id} deleted.")
     
-# Insert data into the staff table
-def add_admin(admin_id):
+    
+  
+
+# Function to add marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
+def add_marks(student_id, cycle, quiz=None, assignment=None, internal=None):
+    if cycle not in [1, 2, 3]:
+        print("Invalid cycle. Please choose from 1, 2, or 3.")
+        return
+
+    # Create column names dynamically based on the cycle
+    quiz_column = f"quiz{cycle}"
+    assignment_column = f"assignment{cycle}" if cycle != 3 else None
+    internal_column = f"internal{cycle}"
+
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO staff (admin_id)
-    VALUES (?);
-    """, (admin_id))
+
+    # Construct the query
+    if cycle == 3:
+        # For cycle 3, exclude the assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = ?, {internal_column} = ?
+        WHERE id = ?;
+        """
+        cursor.execute(query, (quiz, internal, student_id))
+    else:
+        # For other cycles, include the assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = ?, {assignment_column} = ?, {internal_column} = ?
+        WHERE id = ?;
+        """
+        cursor.execute(query, (quiz, assignment, internal, student_id))
+
     conn.commit()
     conn.close()
 
-# Insert data into the timetable table
-def add_timetable(day, time, subject,class_name, department_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-    INSERT INTO timetable (day, time, subject, department_id,class)
-    VALUES (?, ?, ?, ?,?);
-    """, ( day, time, subject, department_id,class_name))
-        conn.commit()
-    except:
-        pass
-    finally:
-        conn.close()
 
-# Insert data into the subject table
-def add_subject( name, code, department_id):
+# Function to view marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
+def view_marks(student_id, cycle):
+    if cycle not in [1, 2, 3]:
+        print("Invalid cycle. Please choose from 1, 2, or 3.")
+        return
+
+    # Create column names dynamically based on the cycle
+    quiz_column = f"quiz{cycle}"
+    assignment_column = f"assignment{cycle}" if cycle != 3 else None
+    internal_column = f"internal{cycle}"
+
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO subject ( name, code, department_id)
-    VALUES ( ?, ?, ?);
-    """, ( name, code, department_id))
+
+    # Query to get the marks for the chosen cycle
+    if cycle == 3:
+        # Exclude assignment for cycle 3
+        query = f"SELECT {quiz_column}, {internal_column} FROM student_details WHERE id = ?;"
+        cursor.execute(query, (student_id,))
+    else:
+        # Include assignment for cycles 1 and 2
+        query = f"SELECT {quiz_column}, {assignment_column}, {internal_column} FROM student_details WHERE id = ?;"
+        cursor.execute(query, (student_id,))
+
+    marks = cursor.fetchone()
+    conn.close()
+
+    if marks:
+        # Handle different column counts based on cycle
+        if cycle == 3:
+            return {
+                "quiz": marks[0],
+                "internal": marks[1]
+            }
+        else:
+            return {
+                "quiz": marks[0],
+                "assignment": marks[1],
+                "internal": marks[2]
+            }
+    else:
+        print(f"No student found with ID {student_id}.")
+        return None
+
+# Function to update marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
+def update_marks(student_id, cycle, quiz=None, assignment=None, internal=None):
+    if cycle not in [1, 2, 3]:
+        print("Invalid cycle. Please choose from 1, 2, or 3.")
+        return
+
+    # Create column names dynamically based on the cycle
+    quiz_column = f"quiz{cycle}"
+    assignment_column = f"assignment{cycle}" if cycle != 3 else None
+    internal_column = f"internal{cycle}"
+
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # Update the marks for the selected cycle
+    if cycle == 3:
+        # For cycle 3, include assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = ?, {assignment_column} = ?, {internal_column} = ?
+        WHERE id = ?;
+        """
+        cursor.execute(query, (quiz, assignment, internal, student_id))
+    else:
+        # For cycle 1 and 2, exclude assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = ?, {internal_column} = ?
+        WHERE id = ?;
+        """
+        cursor.execute(query, (quiz, internal, student_id))
+
     conn.commit()
     conn.close()
+    print(f"Marks for cycle {cycle} updated successfully for student ID {student_id}.")
 
-# def create_connection():
-#     return sqlite3.connect("dynamic_department.db")
-        
-# Fetch department details
-def fetch_department_details():
+
+# Function to delete marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
+def delete_marks(student_id, cycle):
+    if cycle not in [1, 2, 3]:
+        print("Invalid cycle. Please choose from 1, 2, or 3.")
+        return
+
+    # Create column names dynamically based on the cycle
+    quiz_column = f"quiz{cycle}"
+    assignment_column = f"assignment{cycle}" if cycle != 3 else None
+    internal_column = f"internal{cycle}"
+
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM department")
-    data = cursor.fetchall()
-    columns = [description[0] for description in cursor.description]
-    conn.close()
-    return data, columns
 
-# Fetch staff details
-def fetch_staff_details(department_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM staff WHERE department_id = ?", (department_id,))
-    data = cursor.fetchall()
-    columns = [description[0] for description in cursor.description]
-    conn.close()
-    return data, columns
+    # Delete the marks for the selected cycle
+    if cycle == 3:
+        # For cycle 3, exclude assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = NULL, {assignment_column} = NULL, {internal_column} = NULL
+        WHERE id = ?;
+        """
+        cursor.execute(query, (student_id,))
+    else:
+        # For cycle 1 and 2, exclude assignment column
+        query = f"""
+        UPDATE student_details
+        SET {quiz_column} = NULL, {internal_column} = NULL
+        WHERE id = ?;
+        """
+        cursor.execute(query, (student_id,))
 
-# Fetch timetable
-def fetch_timetable(department_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT day, time, subject FROM timetable WHERE department_id = ?", (department_id,))
-    data = cursor.fetchall()
-    conn.close()
-    return data
-
-# Update a record
-def update_record(table, updates, condition):
-    conn = create_connection()
-    cursor = conn.cursor()
-    set_clause = ", ".join([f"{column} = ?" for column in updates.keys()])
-    condition_clause = " AND ".join([f"{column} = ?" for column in condition.keys()])
-    values = list(updates.values()) + list(condition.values())
-    cursor.execute(f"UPDATE {table} SET {set_clause} WHERE {condition_clause}", values)
     conn.commit()
     conn.close()
-
-# Delete a record
-def delete_record(table, condition):
-    conn = create_connection()
-    cursor = conn.cursor()
-    condition_clause = " AND ".join([f"{column} = ?" for column in condition.keys()])
-    values = list(condition.values())
-    cursor.execute(f"DELETE FROM {table} WHERE {condition_clause}", values)
-    conn.commit()
-    conn.close()
-
-# Fetch subject details
-def fetch_subject_details(department_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM subject WHERE department_id = ?", (department_id,))
-    data = cursor.fetchall()
-    columns = [description[0] for description in cursor.description]
-    conn.close()
-    return data, columns
+    print(f"Marks for cycle {cycle} deleted successfully for student ID {student_id}.")
