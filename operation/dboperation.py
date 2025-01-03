@@ -430,6 +430,8 @@ def delete_student(student_id):
 # Function to add a new staff
 def add_staff(staff_id , name, designation, department_id, password="pass_staff", mfa=False, secd=None, phone_no='', email=''):
     conn = create_connection()
+    st.write("Within add_staff method:")
+    st.write(department_id)
     cursor = conn.cursor()
     query = """
     INSERT INTO staff_details (id , name, designation, department_id, password, mfa, secd, phone_no, email)
