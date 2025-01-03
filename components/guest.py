@@ -21,7 +21,7 @@ def guest_page():
     # Sidebar for navigation and displaying past Q&A
     with st.sidebar:
         if st.button("Go to Login"):
-            st.session_state.page = "admin"
+            st.session_state.page = "login"
             st.rerun()
 
         for qa in reversed(st.session_state.qa_list):

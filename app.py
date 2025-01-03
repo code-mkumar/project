@@ -6,6 +6,9 @@ import components.guest
 # import components.login
 # import components.otpVerify
 # import components.qrsetupp
+import components.login
+import components.otpVerify
+import components.qrsetupp
 import components.staff
 import components.student
 # Main app
@@ -38,7 +41,7 @@ def app():
         components.qrsetupp.qr_setup_page()
     elif st.session_state.page == "otp_verification":
         components.otpVerify.otp_verification_page()
-    elif st.session_state.page == "welcome":
+    elif st.session_state.page == "student":
         components.student.welcome_page()
     elif st.session_state.page == "staff":
         components.staff.staff_page()

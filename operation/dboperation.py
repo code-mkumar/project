@@ -120,26 +120,29 @@ def get_role(user_id):
 
 # funtcion to verify the user password
 def check_user(user_id, password, role):
+    from datetime import date
     conn = None
     try:
         conn = create_connection()
         cursor = conn.cursor()
         query = ""
-        
+        dob=''
         # Validate role to prevent SQL injection
         if role not in ['student_details', 'staff_details', 'admin_details']:
             raise ValueError("Invalid role specified.")
-
+        if role == 'student_details':
+            dob = date.fromisoformat(password)
         # Construct query based on role
         if role == 'student_details':
             query = f'SELECT * FROM {role} WHERE id = ? AND dob = ?'
+            cursor.execute(query, (user_id, dob))
         else:
             query = f'SELECT * FROM {role} WHERE id = ? AND password = ?'
-        
-        # Execute the query
-        cursor.execute(query, (user_id, password))
+            cursor.execute(query, (user_id, password))
         data = cursor.fetchone()
-        
+        print(query)
+        # Execute the query
+        print(data)
         return data
     except sqlite3.Error as e:
         print(f"Database error: {e}")
@@ -324,14 +327,14 @@ def incrementing_class():
             conn.close()
 
 # Function to add a new admin
-def add_admin(password, mfa=False, secd=False):
+def add_admin(admin_id,password, mfa=False, secd=None):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
-    INSERT INTO admin_details (password, mfa, secd)
-    VALUES (?, ?, ?);
+    INSERT INTO admin_details (id,password, mfa, secd)
+    VALUES (?, ?, ?, ?);
     """
-    cursor.execute(query, (password, mfa, secd))
+    cursor.execute(query, (admin_id,password, mfa, secd))
     conn.commit()
     conn.close()
     print("Admin added successfully.")
@@ -367,24 +370,24 @@ def delete_admin(admin_id):
     print(f"Admin {admin_id} deleted.")
 
 # Function to add a new student
-def add_student(name, date_of_birth, department_id, class_name, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
+def add_student(student_id,name, date_of_birth, department_id, class_name, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
     conn = create_connection()
     cursor=conn.cursor()
     query = """
-    INSERT INTO student_details (name, date_of_birth, department_id, class, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO student_details (id,name, dob, department_id, class, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
     """
-    cursor.execute(query, (name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3))
+    cursor.execute(query, (student_id,name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3))
     conn.commit()
     conn.close()
     print(f"Student {name} added successfully.")
 
 # Function to view all students
-def view_students():
+def view_students(department_id,class_name):
     conn = create_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM student_details;"
-    cursor.execute(query)
+    query = "SELECT * FROM student_details where department_id = ? AND class =? ;"
+    cursor.execute(query,(department_id,class_name,))
     students = cursor.fetchall()
     conn.close()
     return students
@@ -405,7 +408,7 @@ def update_student(student_id, name=None, date_of_birth=None, department_id=None
     cursor = conn.cursor()
     query = """
     UPDATE student_details
-    SET name = ?, date_of_birth = ?, department_id = ?, class = ?, quiz1 = ?, quiz2 = ?, quiz3 = ?, assignment1 = ?, assignment2 = ?, internal1 = ?, internal2 = ?, internal3 = ?
+    SET name = ?, dob = ?, department_id = ?, class = ?, quiz1 = ?, quiz2 = ?, quiz3 = ?, assignment1 = ?, assignment2 = ?, internal1 = ?, internal2 = ?, internal3 = ?
     WHERE id = ?;
     """
     cursor.execute(query, (name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3, student_id))
@@ -425,24 +428,33 @@ def delete_student(student_id):
 
 
 # Function to add a new staff
-def add_staff(name, designation, department_id, password, mfa=False, secd=False, phone_no=None, email=None):
+def add_staff(staff_id , name, designation, department_id, password="pass_staff", mfa=False, secd=None, phone_no='', email=''):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
-    INSERT INTO staff_details (name, designation, department_id, password, mfa, secd, phone_no, email)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO staff_details (id , name, designation, department_id, password, mfa, secd, phone_no, email)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?,?);
     """
-    cursor.execute(query, (name, designation, department_id, password, mfa, secd, phone_no, email))
+    cursor.execute(query, (staff_id,name, designation, department_id, password, mfa, secd, phone_no, email))
     conn.commit()
     conn.close()
     print("Staff added successfully.")
 
 # Function to view staff
-def view_staff():
+def view_staffs(department_id):
     conn = create_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM staff_details;"
-    cursor.execute(query)
+    query = "SELECT * FROM staff_details where department_id =?;"
+    cursor.execute(query,(department_id,))
+    staff = cursor.fetchall()
+    conn.close()
+    return staff
+
+def view_staff(user_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM staff_details where id =?;"
+    cursor.execute(query,(user_id,))
     staff = cursor.fetchall()
     conn.close()
     return staff
@@ -527,24 +539,24 @@ def delete_department(department_id):
 
 
 # Function to add a new subject
-def add_subject(department_id, name):
+def add_subject(subject_id,department_id, name):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
-    INSERT INTO subject (department_id, name)
-    VALUES (?, ?);
+    INSERT INTO subject (id,department_id, name)
+    VALUES (?, ?,?);
     """
-    cursor.execute(query, (department_id, name))
+    cursor.execute(query, (subject_id,department_id, name))
     conn.commit()
     conn.close()
     print("Subject added successfully.")
 
 # Function to view subjects
-def view_subjects():
+def view_subjects(department_id):
     conn = create_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM subject;"
-    cursor.execute(query)
+    query = "SELECT * FROM subject where department_id =?;"
+    cursor.execute(query,(department_id,))
     subjects = cursor.fetchall()
     conn.close()
     return subjects
@@ -588,11 +600,11 @@ def add_timetable(day, time, subject, class_name, department_id):
     print("Timetable entry added successfully.")
 
 # Function to view timetable entries
-def view_timetable():
+def view_timetable(department_id,class_name):
     conn = create_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM timetable;"
-    cursor.execute(query)
+    query = "SELECT * FROM timetable where department_id =? AND class=?;"
+    cursor.execute(query,(department_id,class_name,))
     timetable = cursor.fetchall()
     conn.close()
     return timetable
@@ -625,7 +637,7 @@ def delete_timetable(timetable_id):
   
 
 # Function to add marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
-def add_marks(student_id, cycle, quiz=None, assignment=None, internal=None):
+def add_marks(student_id,cycle, quiz=None, assignment=None, internal=None):
     if cycle not in [1, 2, 3]:
         print("Invalid cycle. Please choose from 1, 2, or 3.")
         return

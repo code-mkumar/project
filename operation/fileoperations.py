@@ -26,7 +26,7 @@ def read_admin_files():
         sql_content = sql_file.read()
     return role_content, sql_content
 
-def write_to_file(filename, data):
+def write_to_file(filename, data=''):
     """
     Writes data to a file, overwriting the existing content.
     :param filename: The file to write to (student.txt or staff.txt).
@@ -59,3 +59,16 @@ def read_from_file(filename):
         data = file.readlines()
     return [line.strip() for line in data]  # Remove newlines from each line
 
+def file_to_text(uploaded_file):
+    if uploaded_file.type == "application/pdf":
+        import PyPDF2
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+        file_content = "".join([page.extract_text() for page in pdf_reader.pages])
+    elif uploaded_file.type in ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
+        from docx import Document
+        doc = Document(uploaded_file)
+        file_content = "\n".join([p.text for p in doc.paragraphs])
+    else:
+        file_content = uploaded_file.read().decode('utf-8')
+    
+    return file_content
