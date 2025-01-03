@@ -174,7 +174,7 @@ def admin_page():
                 if st.button("Add Staff"):
                     
                     if staff_id and staff_name and designation and staff_phone:
-                        operation.dboperation.add_staff(staff_id,staff_name,designation,department_id,"pass_staff")
+                        operation.dboperation.add_staff(staff_id,staff_name,designation,selected_department_id,"pass_staff")
                         st.success(f"Staff '{staff_name}' added to Department ID {selected_department_id}!")
                     else:
                         st.error("Please fill all the fields.")
