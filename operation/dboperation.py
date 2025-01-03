@@ -21,6 +21,13 @@ def create_tables():
             dob DATE NOT NULL,
             department_id TEXT NOT NULL,
             class TEXT NOT NULL,
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS student_mark_details (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject_id TEXT NOT NULL,
+            student_id TEXT NOT NULL,
             quiz1 FLOAT ,
             quiz2 FLOAT,
             quiz3 FLOAT,
@@ -30,7 +37,8 @@ def create_tables():
             internal2 FLOAT,
             internal3 FLOAT
         );
-        """,
+        """
+        ,
         """
         CREATE TABLE IF NOT EXISTS staff_details (
             id TEXT PRIMARY KEY,
@@ -41,7 +49,7 @@ def create_tables():
             mfa BOOLEAN DEFAULT 0,
             secd TEXT DEFAULT NONE,
             phone_no INTEGER NOT NULL,
-            email TEXT NOT NULL UNIQUE
+            email TEXT NOT NULL 
         );
         """,
         """
@@ -72,7 +80,8 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS subject (
             id TEXT PRIMARY KEY,
             department_id INTEGER NOT NULL,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            class TEXT NOT NULL
         );
         """,
         """
@@ -84,7 +93,32 @@ def create_tables():
             class TEXT NOT NULL,
             department_id INTEGER NOT NULL
         );
+        """,
+        """CREATE INDEX student_details
+        ON table_name (id);
+        """,
+         """CREATE INDEX student_mark_details
+        ON table_name (id);
+        """,
+         """CREATE INDEX staff_details
+        ON table_name (id);
+        """,
+         """CREATE INDEX admin_detials
+        ON table_name (id);
+        """,
+         """CREATE INDEX feedback
+        ON table_name (id);
+        """,
+         """CREATE INDEX timetable
+        ON table_name (id);
+        """,
+         """CREATE INDEX subject
+        ON table_name (id);
+        """,
+         """CREATE INDEX department
+        ON table_name (id);
         """
+
     ]
 
     # Execute all queries
@@ -371,14 +405,14 @@ def delete_admin(admin_id):
     print(f"Admin {admin_id} deleted.")
 
 # Function to add a new student
-def add_student(student_id,name, date_of_birth, department_id, class_name, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
+def add_student(student_id,name, date_of_birth, department_id, class_name):
     conn = create_connection()
     cursor=conn.cursor()
     query = """
-    INSERT INTO student_details (id,name, dob, department_id, class, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
+    INSERT INTO student_details (id,name, dob, department_id, class)
+    VALUES (?, ?, ?, ?, ?);
     """
-    cursor.execute(query, (student_id,name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3))
+    cursor.execute(query, (student_id,name, date_of_birth, department_id, class_name,))
     conn.commit()
     conn.close()
     print(f"Student {name} added successfully.")
@@ -404,15 +438,15 @@ def view_student(student_id):
     return student
 
 # Function to update student details
-def update_student(student_id, name=None, date_of_birth=None, department_id=None, class_name=None, quiz1=None, quiz2=None, quiz3=None, assignment1=None, assignment2=None, internal1=None, internal2=None, internal3=None):
+def update_student(student_id, name=None, date_of_birth=None, department_id=None, class_name=None):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
     UPDATE student_details
-    SET name = ?, dob = ?, department_id = ?, class = ?, quiz1 = ?, quiz2 = ?, quiz3 = ?, assignment1 = ?, assignment2 = ?, internal1 = ?, internal2 = ?, internal3 = ?
+    SET name = ?, dob = ?, department_id = ?, class = ?
     WHERE id = ?;
     """
-    cursor.execute(query, (name, date_of_birth, department_id, class_name, quiz1, quiz2, quiz3, assignment1, assignment2, internal1, internal2, internal3, student_id))
+    cursor.execute(query, (name, date_of_birth, department_id, class_name, student_id))
     conn.commit()
     conn.close()
     print(f"Student {student_id} details updated.")
@@ -542,14 +576,14 @@ def delete_department(department_id):
 
 
 # Function to add a new subject
-def add_subject(subject_id,department_id, name):
+def add_subject(subject_id,department_id,name,class_name):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
     INSERT INTO subject (id,department_id, name)
-    VALUES (?, ?,?);
+    VALUES (?, ?,?,?);
     """
-    cursor.execute(query, (subject_id,department_id, name))
+    cursor.execute(query, (subject_id,department_id, name,class_name))
     conn.commit()
     conn.close()
     print("Subject added successfully.")
@@ -565,15 +599,15 @@ def view_subjects(department_id):
     return subjects
 
 # Function to update subject details
-def update_subject(subject_id, department_id=None, name=None):
+def update_subject(subject_id, department_id=None, name=None,class_name=None):
     conn = create_connection()
     cursor = conn.cursor()
     query = """
     UPDATE subject
-    SET department_id = ?, name = ?
+    SET department_id = ?, name = ? , class = ?
     WHERE id = ?;
     """
-    cursor.execute(query, (department_id, name, subject_id))
+    cursor.execute(query, (department_id, name, subject_id,class_name))
     conn.commit()
     conn.close()
     print(f"Subject {subject_id} updated.")
@@ -640,7 +674,7 @@ def delete_timetable(timetable_id):
   
 
 # Function to add marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
-def add_marks(student_id,cycle, quiz=None, assignment=None, internal=None):
+def add_marks(student_id, subject_id, cycle, quiz=None, assignment=None, internal=None):
     if cycle not in [1, 2, 3]:
         print("Invalid cycle. Please choose from 1, 2, or 3.")
         return
@@ -653,141 +687,123 @@ def add_marks(student_id,cycle, quiz=None, assignment=None, internal=None):
     conn = create_connection()
     cursor = conn.cursor()
 
-    # Construct the query
+    # Ensure the row exists before updating
+    cursor.execute("""
+    INSERT OR IGNORE INTO student_mark_details (student_id, subject_id)
+    VALUES (?, ?);
+    """, (student_id, subject_id))
+
+    # Update the row based on the cycle
     if cycle == 3:
-        # For cycle 3, exclude the assignment column
         query = f"""
-        UPDATE student_details
+        UPDATE student_mark_details
         SET {quiz_column} = ?, {internal_column} = ?
-        WHERE id = ?;
+        WHERE student_id = ? AND subject_id = ?;
         """
-        cursor.execute(query, (quiz, internal, student_id))
+        cursor.execute(query, (quiz, internal, student_id, subject_id))
     else:
-        # For other cycles, include the assignment column
         query = f"""
-        UPDATE student_details
+        UPDATE student_mark_details
         SET {quiz_column} = ?, {assignment_column} = ?, {internal_column} = ?
-        WHERE id = ?;
+        WHERE student_id = ? AND subject_id = ?;
         """
-        cursor.execute(query, (quiz, assignment, internal, student_id))
+        cursor.execute(query, (quiz, assignment, internal, student_id, subject_id))
 
     conn.commit()
     conn.close()
+    print(f"Marks added/updated for student ID {student_id} and subject ID {subject_id} in cycle {cycle}.")
+
 
 
 # Function to view marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
-def view_marks(student_id, cycle):
-    if cycle not in [1, 2, 3]:
-        print("Invalid cycle. Please choose from 1, 2, or 3.")
-        return
-
-    # Create column names dynamically based on the cycle
-    quiz_column = f"quiz{cycle}"
-    assignment_column = f"assignment{cycle}" if cycle != 3 else None
-    internal_column = f"internal{cycle}"
+def view_marks(student_id, subject_id):
+    
 
     conn = create_connection()
     cursor = conn.cursor()
 
-    # Query to get the marks for the chosen cycle
-    if cycle == 3:
-        # Exclude assignment for cycle 3
-        query = f"SELECT {quiz_column}, {internal_column} FROM student_details WHERE id = ?;"
-        cursor.execute(query, (student_id,))
-    else:
-        # Include assignment for cycles 1 and 2
-        query = f"SELECT {quiz_column}, {assignment_column}, {internal_column} FROM student_details WHERE id = ?;"
-        cursor.execute(query, (student_id,))
+   
+    query = f"""
+        SELECT *
+        FROM student_mark_details
+        WHERE student_id = ? AND subject_id = ?;
+        """
+    cursor.execute(query, (student_id, subject_id))
 
     marks = cursor.fetchone()
     conn.close()
 
     if marks:
-        # Handle different column counts based on cycle
-        if cycle == 3:
-            return {
-                "quiz": marks[0],
-                "internal": marks[1]
-            }
-        else:
-            return {
-                "quiz": marks[0],
-                "assignment": marks[1],
-                "internal": marks[2]
-            }
+        return marks
     else:
-        print(f"No student found with ID {student_id}.")
+        print(f"No marks found for student ID {student_id}, subject ID {subject_id}.")
         return None
 
-# Function to update marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
-def update_marks(student_id, cycle, quiz=None, assignment=None, internal=None):
-    if cycle not in [1, 2, 3]:
-        print("Invalid cycle. Please choose from 1, 2, or 3.")
-        return
 
-    # Create column names dynamically based on the cycle
-    quiz_column = f"quiz{cycle}"
-    assignment_column = f"assignment{cycle}" if cycle != 3 else None
-    internal_column = f"internal{cycle}"
+# Function to update marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
+def update_marks(student_id,subject_id, quiz1=None, assignment1=None, internal1=None,quiz2=None, assignment2=None, internal2=None,quiz3=None,internal3=None):
 
     conn = create_connection()
     cursor = conn.cursor()
 
-    # Update the marks for the selected cycle
-    if cycle == 3:
-        # For cycle 3, include assignment column
-        query = f"""
-        UPDATE student_details
-        SET {quiz_column} = ?, {assignment_column} = ?, {internal_column} = ?
-        WHERE id = ?;
-        """
-        cursor.execute(query, (quiz, assignment, internal, student_id))
-    else:
+    
         # For cycle 1 and 2, exclude assignment column
-        query = f"""
+    query = f"""
         UPDATE student_details
-        SET {quiz_column} = ?, {internal_column} = ?
-        WHERE id = ?;
+        SET quiz1 = ?, internal1 = ?,assignment1=?,quiz2 = ?, internal2 = ?,assignment2=?,quiz3= ?, internal3 = ?
+        WHERE id = ? and subject_id=?;
         """
-        cursor.execute(query, (quiz, internal, student_id))
+    cursor.execute(query, (quiz1, internal1,assignment1,quiz2, internal2,assignment2,quiz3, internal3, student_id,subject_id))
 
     conn.commit()
     conn.close()
-    print(f"Marks for cycle {cycle} updated successfully for student ID {student_id}.")
+    print(f"Marks for cycle  updated successfully for student ID {student_id}.")
 
+def view_marks_class_department(department_id, class_name, subject_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT 
+            sd.id AS student_id,
+            sd.name AS student_name,
+            sd.class AS class,
+            s.name AS subject_name,
+            sm.quiz1,
+            sm.quiz2,
+            sm.quiz3,
+            sm.assignment1,
+            sm.assignment2,
+            sm.internal1,
+            sm.internal2,
+            sm.internal3
+        FROM 
+            student_details sd
+        JOIN 
+            student_mark_details sm ON sd.id = sm.student_id
+        JOIN 
+            subject s ON sm.subject_id = s.id
+        WHERE 
+            sd.department_id = ? AND sd.class = ? AND s.id = ?;
+    """
+    cursor.execute(query, (department_id, class_name, subject_id))
+    results = cursor.fetchall()
+    conn.close()
+
+    return results
 
 # Function to delete marks (quiz, assignment, internal) for a specific cycle (1, 2, or 3)
-def delete_marks(student_id, cycle):
-    if cycle not in [1, 2, 3]:
-        print("Invalid cycle. Please choose from 1, 2, or 3.")
-        return
-
-    # Create column names dynamically based on the cycle
-    quiz_column = f"quiz{cycle}"
-    assignment_column = f"assignment{cycle}" if cycle != 3 else None
-    internal_column = f"internal{cycle}"
-
+def delete_marks(student_id):
     conn = create_connection()
     cursor = conn.cursor()
 
     # Delete the marks for the selected cycle
-    if cycle == 3:
-        # For cycle 3, exclude assignment column
-        query = f"""
-        UPDATE student_details
-        SET {quiz_column} = NULL, {assignment_column} = NULL, {internal_column} = NULL
-        WHERE id = ?;
+   
+    query = f"""
+        DELETE FROM subject WHERE student_id = ?;
         """
-        cursor.execute(query, (student_id,))
-    else:
-        # For cycle 1 and 2, exclude assignment column
-        query = f"""
-        UPDATE student_details
-        SET {quiz_column} = NULL, {internal_column} = NULL
-        WHERE id = ?;
-        """
-        cursor.execute(query, (student_id,))
+    cursor.execute(query, (student_id,))
 
     conn.commit()
     conn.close()
-    print(f"Marks for cycle {cycle} deleted successfully for student ID {student_id}.")
+    print(f"Marks for deleted successfully for student ID {student_id}.")
