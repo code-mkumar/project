@@ -303,7 +303,7 @@ def admin_page():
         
         # Fetch and edit staff details
         st.subheader("Staff Details")
-        staff_data = operation.dboperation.view_staff(department_id)
+        staff_data = operation.dboperation.view_staffs(department_id)
         st.table(staff_data)
         
         staff_ids = [record[0] for record in staff_data]  # Assuming `record[0]` is the `staff_id`
