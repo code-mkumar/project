@@ -103,20 +103,20 @@ def admin_page():
             with open(file_path, "r") as f:
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
-            if st.button("Delete Content"):
+            if st.button("update Content",key="update"):
                 file_path = os.path.join(folder_path, existing_file)
                 with open(file_path, "w") as f:
                     f.write(edited_existing_content)
                 st.success(f"Content of {file_to_delete} deleted successfully!")
                 
-            if st.button("Update File"):
-                try:
-                    with open(file_path, "w") as f:
-                        f.write(edited_existing_content)
-                    st.success(f"Content of {existing_file} updated successfully!")
-                except Exception as e:
-                    st.write(e)
-                    print("***********************************************",e)
+            # if st.button("Update File"):
+            #     try:
+            #         with open(file_path, "w") as f:
+            #             f.write(edited_existing_content)
+            #         st.success(f"Content of {existing_file} updated successfully!")
+            #     except Exception as e:
+            #         st.write(e)
+            #         print("***********************************************",e)
     # Deletion section
         st.subheader("Delete File Content")
         file_to_delete = st.selectbox(
