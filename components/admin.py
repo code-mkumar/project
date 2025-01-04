@@ -104,9 +104,8 @@ def admin_page():
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
 
             if st.button("Update File"):
+                st.balloons()
                 try:
-                    #file_path = os.path.join(folder_path, existing_file)
-                    #print("************************************************************With in open file content:************************************************",file_path)
                     with open(file_path, "w") as f:
                         f.write(edited_existing_content)
                     st.success(f"Content of {existing_file} updated successfully!")
