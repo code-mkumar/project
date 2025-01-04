@@ -34,7 +34,7 @@ def guest_page():
         collegehistory = f.read()
     with open("departmenthistory.txt", "r") as f:
         departmenthistory = f.read()
-    default,default_sql=operation.fileoperations.read_default_files()
+    # default,default_sql=operation.fileoperations.read_default_files()
     # Display guest welcome message
     st.title("Welcome, Guest!")
     st.write("You can explore the site as a guest, but you'll need to log in for full role-based access.")
@@ -85,7 +85,7 @@ def guest_page():
 
                 # Generate answer using the context and formatted data
                 answer = genai.gemini.model.generate_content(
-                    f"use the data {context} and frame the answer for this question {question} use this template {default} in formal english"
+                    f"use the data {context} and frame the answer for this question {question} use this template  in formal english"
                 )
                 result_text = answer.candidates[0].content.parts[0].text
 
