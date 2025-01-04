@@ -32,6 +32,15 @@ def write_to_file(filename, data=''):
     :param filename: The file to write to (student.txt or staff.txt).
     :param data: The data to write (a list of strings).
     """
+    # Construct the absolute path for the `files` directory
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+    files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+    # Ensure the `files` directory exists
+    os.makedirs(files_dir, exist_ok=True)
+
+    # Full path to the target file
+    file_path = os.path.join(files_dir, f"{file_name}.txt")
     with open(filename, "w") as file:
         for line in data:
             file.write(line + "\n")
