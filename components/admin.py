@@ -99,40 +99,24 @@ def admin_page():
 
         # Open File Button
         if st.button("Open File"):
-            try:
-                # Check folder and file existence
-                if not os.path.exists(folder_path):
-                    raise FileNotFoundError(f"Folder does not exist: {folder_path}")
-        
+            file_path = os.path.join(folder_path, existing_file)
+            with open(file_path, "r") as f:
+                existing_content = f.read()
+            edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
+            if st.button("Delete Content"):
                 file_path = os.path.join(folder_path, existing_file)
-                if not os.path.isfile(file_path):
-                    raise FileNotFoundError(f"File not found: {file_path}")
-        
-                with open(file_path, "r") as f:
-                    existing_content = f.read()
-        
-                st.text_area("Edit Existing File Content", value=existing_content, key="edit_content", height=300)
-        
-            except Exception as e:
-                st.error(f"Error opening file: {e}")
-        
-        # Update File Button
-        if st.button("Update File"):
-            try:
-                edited_existing_content = st.session_state.get("edit_content", "")
-        
-                # Ensure we have content to write
-                if not edited_existing_content:
-                    raise ValueError("No content to update. Edit the file before saving.")
-        
-                file_path = os.path.join(folder_path, existing_file)
-        
                 with open(file_path, "w") as f:
                     f.write(edited_existing_content)
-        
-                st.success(f"Content of {existing_file} updated successfully!")
-            except Exception as e:
-                st.error(f"Error updating file: {e}")
+                st.success(f"Content of {file_to_delete} deleted successfully!")
+                
+            if st.button("Update File"):
+                try:
+                    with open(file_path, "w") as f:
+                        f.write(edited_existing_content)
+                    st.success(f"Content of {existing_file} updated successfully!")
+                except Exception as e:
+                    st.write(e)
+                    print("***********************************************",e)
     # Deletion section
         st.subheader("Delete File Content")
         file_to_delete = st.selectbox(
