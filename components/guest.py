@@ -30,10 +30,10 @@ def guest_page():
             st.write("---")
 
     # Load text files for college and department history
-    with open("collegehistory.txt", "r") as f:
-        collegehistory = f.read()
-    with open("departmenthistory.txt", "r") as f:
-        departmenthistory = f.read()
+    # with open("collegehistory.txt", "r") as f:
+    #     collegehistory = f.read()
+    # with open("departmenthistory.txt", "r") as f:
+    #     departmenthistory = f.read()
     # default,default_sql=operation.fileoperations.read_default_files()
     # Display guest welcome message
     st.title("Welcome, Guest!")
