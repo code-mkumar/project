@@ -107,7 +107,7 @@ def admin_page():
                 file_path = os.path.join(folder_path, existing_file)
                 with open(file_path, "w") as f:
                     f.write(edited_existing_content)
-                st.success(f"Content of {file_to_delete} deleted successfully!")
+                st.success(f"Content of {file_to_delete} updated successfully!")
                 
             # if st.button("Update File"):
             #     try:
