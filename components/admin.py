@@ -98,6 +98,7 @@ def admin_page():
     )
 
         if st.button("Open File"):
+            st.balloons()
             file_path = os.path.join(folder_path, existing_file)
             with open(file_path, "r") as f:
                 existing_content = f.read()
