@@ -43,7 +43,7 @@ def admin_page():
         f1=st.text_input("Enter the file name")
         file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/{f1}.txt"))
         if f1:
-            operation.fileoperations.write_to_file(file_path)
+            operation.fileoperations.write_to_file(f"{f1}_department")
         st.subheader("File Upload and Edit Module")
         folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/"))
         
