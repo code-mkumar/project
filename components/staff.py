@@ -220,7 +220,17 @@ def staff_page():
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
 
-            if st.button("Update File"):
+            # if st.button("Update File"):
+            #     file_path = os.path.join(folder_path, existing_file)
+            #     with open(file_path, "w") as f:
+            #         f.write(edited_existing_content)
+            #     st.success(f"Content of {existing_file} updated successfully!")
+        if st.checkbox("update"):
+            file_path = os.path.join(folder_path, existing_file)
+            with open(file_path, "r") as f:
+                existing_content = f.read()
+            edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300,key="update")
+            if st.button("update Content",key="update2"):
                 file_path = os.path.join(folder_path, existing_file)
                 with open(file_path, "w") as f:
                     f.write(edited_existing_content)
