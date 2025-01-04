@@ -98,17 +98,30 @@ def admin_page():
     )
 
         if st.button("Open File"):
-            st.balloons()
-            file_path = os.path.join(folder_path, existing_file)
-            with open(file_path, "r") as f:
-                existing_content = f.read()
-            edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
-
-            if edited_existing_content: #st.button("Update File"):
-                with open(file_path, "w") as f:
-                    f.write(edited_existing_content)
-                st.success(f"Content of {existing_file} updated successfully!")
-
+            try:
+                # Build the file path
+                file_path = os.path.join(folder_path, existing_file)
+                with open(file_path, "r") as f:
+                    existing_content = f.read()
+        
+                # Display text area for editing content
+                edited_existing_content = st.text_area(
+                    "Edit Existing File Content",
+                    value=existing_content,
+                    height=300
+                )
+        
+                # Save edited content
+                if st.button("Update File"):
+                    try:
+                        with open(file_path, "w") as f:
+                            f.write(edited_existing_content)
+                        st.success(f"Content of {existing_file} updated successfully!")
+                    except Exception as e:
+                        st.error(f"Failed to update file: {e}")
+        
+            except Exception as e:
+                st.error(f"Failed to open file: {e}")
     # Deletion section
         st.subheader("Delete File Content")
         file_to_delete = st.selectbox(
