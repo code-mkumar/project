@@ -98,16 +98,18 @@ def admin_page():
     )
 
         # Open File Button
+        existing_content=''
         if st.button("Open File"):
             file_path = os.path.join(folder_path, existing_file)
             with open(file_path, "r") as f:
                 existing_content = f.read()
+            edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300,disable=True)
+        if st.button("update Content",key="update"):
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
-            if st.button("update Content",key="update"):
-                file_path = os.path.join(folder_path, existing_file)
-                with open(file_path, "w") as f:
-                    f.write(edited_existing_content)
-                st.success(f"Content of {file_to_delete} updated successfully!")
+            file_path = os.path.join(folder_path, existing_file)
+            with open(file_path, "w") as f:
+                f.write(edited_existing_content)
+            st.success(f"Content of {file_to_delete} updated successfully!")
                 
             # if st.button("Update File"):
             #     try:
