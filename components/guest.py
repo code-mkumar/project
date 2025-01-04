@@ -3,6 +3,7 @@ import genai.gemini
 import operation
 # import operation.dboperation
 # import operation.fileoperations
+import operation.dboperation
 import operation.preprocessing
 import json
 import genai
@@ -21,14 +22,28 @@ def guest_page():
     # Sidebar for navigation and displaying past Q&A
     with st.sidebar:
         if st.button("Go to Login"):
-            st.session_state.page = "admin"
+            st.session_state.page = "login"
             st.rerun()
 
         for qa in reversed(st.session_state.qa_list):
             st.write(f"**Question:** {qa['question']}")
             st.write(f"**Answer:** {qa['answer']}")
             st.write("---")
-
+    if "qa_list" in st.session_state and len(st.session_state.qa_list) % 3 == 0 and len(st.session_state.qa_list):
+        # qa_list exists and its length is a multiple of 3
+        st.write("qa_list exists and its length is a multiple of 3.")
+        with st.popover("feedback"):
+            user_id = st.text_input("User ID")
+            name = st.text_input("Your Name")
+            message = st.text_area("Your Feedback")
+            
+            if st.button("Submit Feedback"):
+                if user_id and name and message:
+                    operation.dboperation.add_feedback(user_id, name, message)
+                else:
+                    st.warning("Please fill all the fields to submit your feedback.")
+            
+    
     # Load text files for college and department history
     # with open("collegehistory.txt", "r") as f:
     #     collegehistory = f.read()

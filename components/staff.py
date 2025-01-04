@@ -9,10 +9,12 @@ import operation.qrsetter
 import genai
 from datetime import date
 import pandas as pd
+import os
 def staff_page():
     # st.set_page_config(page_title="Anjac_AI_staff", layout="wide")
     data = operation.dboperation.view_staff(st.session_state.user_id)
     print("data:",data)
+    department_id=data[0][3]
     # Sidebar content
     with st.sidebar:
         st.header("staff Modules")
@@ -80,13 +82,15 @@ def staff_page():
     with st.expander(f"Welcome, {data[0][1]}! 🧑‍💻"):
         st.write("Choose an action:")
         with st.popover("profile"):
-            st.write(f"name:{data[0][1]}")
-            st.write(f"rollno:{st.session_state.user_id}")
+            st.write(f"INITIAL :{st.session_state.user_id}")
+            st.write(f"name :{data[0][1]}")
+            
         with st.popover("settings"):
-            st.write("update the password")
+            st.write("update user data")
             if data[0][5] == True:
                 otp = st.text_input("enter the otp" ,type='password')
                 if operation.qrsetter.verify_otp(secret,otp):
+                    value = st.checkbox("Disable MFA", value=data[0][5], on_change=lambda: operation.dboperation.mfa_update(data[0][0], "staff_details", value))
                     password = st.text_input("enter the new password",type="password")
                     operation.dboperation.change_pass(password,st.session_state.user_id)
                     st.success("changed successfully!!!")
@@ -94,6 +98,7 @@ def staff_page():
                     st.error("enter the correct otp...")
             password = st.text_input("enter the password" ,type='password')
             if password == data[0][4]:
+                value = st.checkbox("enable MFA", value=data[0][5], on_change=lambda: operation.dboperation.mfa_update(data[0][0], "staff_details", value))
                 password = st.text_input("enter the new password",type="password")
                 operation.dboperation.change_pass(password,st.session_state.user_id)
                 st.success("changed successfully!!!")
@@ -161,6 +166,7 @@ def staff_page():
 
             
     elif module == "File Upload and Edit":
+        
         st.write("file upload")
         category=''
         graduate_level=''
@@ -168,10 +174,10 @@ def staff_page():
         departments = operation.dboperation.view_departments()  # Fetch all departments
         for dept in departments:
             if dept[0] == data[0][3]:  # Compare department_id
-                category = dept[1] +"_department.txt"
+                category = dept[1] +"_department.txt.txt"
                 graduate_level=dept[2]
                 department_name=dept[1]
-        
+        folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/"))
         # category = data[0][3]
 
     # File uploader
@@ -199,7 +205,8 @@ def staff_page():
             edited_content = st.text_area("Edit File Content", value=file_content, height=300)
 
             if st.button("Save File"):
-                with open(category, "a") as f:
+                file_path = os.path.join(folder_path, category)
+                with open(file_path, "a") as f:
                     f.write(edited_content)
                 st.success(f"File content saved to {category} successfully!")
 
@@ -208,12 +215,14 @@ def staff_page():
         existing_file =category
 
         if st.button("Open File"):
-            with open(existing_file, "r") as f:
+            file_path = os.path.join(folder_path, existing_file)
+            with open(file_path, "r") as f:
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
 
             if st.button("Update File"):
-                with open(existing_file, "w") as f:
+                file_path = os.path.join(folder_path, existing_file)
+                with open(file_path, "w") as f:
                     f.write(edited_existing_content)
                 st.success(f"Content of {existing_file} updated successfully!")
 
@@ -222,13 +231,14 @@ def staff_page():
         file_to_delete = category
 
         if st.button("Delete Content"):
-            with open(file_to_delete, "w") as f:
+            file_path = os.path.join(folder_path, file_to_delete)
+            with open(file_path, "w") as f:
                 f.write("")
             st.success(f"Content of {file_to_delete} deleted successfully!")
 
         
         selected_department_id = data[0][3]
-        with st.expander("Add Staff to Selected Department"):
+        with st.popover("Add Staff to Selected Department"):
                 staff_id = st.text_input("Staff Id:")
                 staff_name = st.text_input("Staff Name:")
                 designation = st.text_input("Designation:")
@@ -243,7 +253,7 @@ def staff_page():
                         st.error("Please fill all the fields.")
         
         # Add Timetable to the selected department
-        with st.expander("Add Timetable to Selected Department"):
+        with st.popover("Add Timetable to Selected Department"):
             # timetable_id = st.text_input("Time Table Id:")
             day = st.selectbox("day:",["monday","tuesday","wednesday","thursday","friday","saturday"])
             if day =="saturday":
@@ -253,9 +263,9 @@ def staff_page():
             subject = st.text_input("Subject:")
     
             if graduate_level == "PG": 
-                class_name = st.selectbox("Class:", ["I", "II"]) 
+                class_name = st.selectbox("Class:", ["I", "II"],key="PG_timetable") 
             else: 
-                class_name = st.selectbox("Class:", ["I", "II", "III"])
+                class_name = st.selectbox("Class:", ["I", "II", "III"],key="UG_timetable")
             
             if st.button("Add Timetable"):
                 if  day and time and subject:
@@ -265,14 +275,14 @@ def staff_page():
                     st.error("Please fill all the fields.")
     
         # Add Subject to the selected department
-        with st.expander("Add Subject to Selected Department"):
+        with st.popover("Add Subject to Selected Department"):
             
             subject_name = st.text_input("Subject Name:")
             subject_code = st.text_input("Subject Code:")
             if graduate_level == "PG": 
-                class_name = st.selectbox("Class:", ["I", "II"]) 
+                class_name = st.selectbox("Class:", ["I", "II"],key="PG_subject") 
             else: 
-                class_name = st.selectbox("Class:", ["I", "II", "III"])
+                class_name = st.selectbox("Class:", ["I", "II", "III"],key="UG_subject")
             if st.button("Add Subject"):
                 if subject_name and subject_code:
                     operation.dboperation.add_subject( subject_code, selected_department_id,subject_name)
@@ -281,7 +291,7 @@ def staff_page():
                     st.error("Please fill all the fields.")
 
         # Add Student to the selected department
-        with st.expander("Add Student to Selected Department"):
+        with st.popover("Add Student to Department"):
             # Define the range of dates
             min_date = date(2000, 1, 1)  # Minimum date
             max_date = date(2050, 12, 31)  # Maximum date
@@ -289,9 +299,9 @@ def staff_page():
             name = st.text_input("Student Name:")
             dob=st.date_input("Date of Birth",min_value=min_date,max_value=max_date)
             if graduate_level == "PG": 
-                class_name = st.selectbox("Class:", ["I", "II"]) 
+                class_name = st.selectbox("Class:", ["I", "II"],key="PG_student") 
             else: 
-                class_name = st.selectbox("Class:", ["I", "II", "III"])
+                class_name = st.selectbox("Class:", ["I", "II", "III"],key="UG_student")
             
             if st.button("Add Student"):
                 if rollno and name and dob and class_name:
@@ -301,12 +311,12 @@ def staff_page():
                     st.error("Please fill all the fields.")
 
         # Add marks to the selected department
-        with st.expander("Add Marks to Selected Student"):
+        with st.popover("Add Marks to Selected Student"):
             st.subheader("Mark Entry")
             if graduate_level == "PG": 
-                class_name = st.selectbox("Class:", ["I", "II"]) 
+                class_name = st.selectbox("Class:", ["I", "II"],key="PG_mark") 
             else: 
-                class_name = st.selectbox("Class:", ["I", "II", "III"])
+                class_name = st.selectbox("Class:", ["I", "II", "III"],key="UG_mark")
             
             if class_name:
                 cycle = st.selectbox("Cycle", ["1", "2", "3"])
@@ -338,46 +348,49 @@ def staff_page():
                                 operation.dboperation.add_marks(id,subject_id, cycle, quiz, assignment, internal_marks)
                                 st.success("Marks added successfully!")
         # Fetch and edit staff details
+        # Fetch and edit staff details
         st.subheader("Staff Details")
         staff_data = operation.dboperation.view_staffs(department_id)
+        print("department id",department_id)
         st.table(staff_data)
         
         staff_ids = [record[0] for record in staff_data]  # Assuming `record[0]` is the `staff_id`
         selected_staff_id = st.selectbox("Select Staff ID to Update:", options=staff_ids)
+        if st.checkbox("update staff"):
+            # Pre-fill fields based on selected staff
+            selected_staff = next((record for record in staff_data if record[0] == selected_staff_id), None)
+            if selected_staff:
+                with st.form("update_staff_form"):
+                    st.write("Update Staff Details")
+                    
+                    staff_id = st.text_input("Staff ID (required):", value=selected_staff[0], disabled=True)
+                    name = st.text_input("Name:", value=selected_staff[1])  # Assuming `record[1]` is `name`
+                    designation = st.text_input("Designation:", value=selected_staff[2])  # Adjust indices as needed
+                    department_id = st.text_input("Department ID:", value=selected_staff[3])
+                    password = st.text_input("Password:", type="password")
+                    mfa = st.text_input("MFA:", value=selected_staff[5])  # Adjust index if `mfa` exists
+                    secd = st.text_input("Secondary Details:", value=selected_staff[6])
+                    phone_no = st.text_input("Phone Number:", value=selected_staff[7])
+                    email = st.text_input("Email:", value=selected_staff[8])
 
-        # Pre-fill fields based on selected staff
-        selected_staff = next((record for record in staff_data if record[0] == selected_staff_id), None)
-        if selected_staff:
-            with st.form("update_staff_form"):
-                st.write("Update Staff Details")
-                
-                staff_id = st.text_input("Staff ID (required):", value=selected_staff[0], disabled=True)
-                name = st.text_input("Name:", value=selected_staff[1])  # Assuming `record[1]` is `name`
-                designation = st.text_input("Designation:", value=selected_staff[2])  # Adjust indices as needed
-                department_id = st.text_input("Department ID:", value=selected_staff[3])
-                password = st.text_input("Password:", type="password")
-                mfa = st.text_input("MFA:", value=selected_staff[5])  # Adjust index if `mfa` exists
-                secd = st.text_input("Secondary Details:", value=selected_staff[6])
-                phone_no = st.text_input("Phone Number:", value=selected_staff[7])
-                email = st.text_input("Email:", value=selected_staff[8])
-
-                submitted = st.form_submit_button("Update Staff")
-                if submitted:
-                    if staff_id:
-                        operation.dboperation.update_staff(
-                            staff_id,
-                            name ,
-                            designation ,
-                            department_id ,
-                            password ,
-                            mfa ,
-                            secd ,
-                            phone_no ,
-                            email 
-                        )
-                        st.success(f"Staff {staff_id} details updated.")
-                    else:
-                        st.error("Staff ID is required for updating details.")
+                    submitted = st.form_submit_button("Update Staff")
+                    if submitted:
+                        if staff_id:
+                            operation.dboperation.update_staff(
+                                staff_id,
+                                name ,
+                                designation ,
+                                department_id ,
+                                password ,
+                                mfa ,
+                                secd ,
+                                phone_no ,
+                                email 
+                            )
+                            st.success(f"Staff {staff_id} details updated.")
+                        else:
+                            st.error("Staff ID is required for updating details.")
+        if st.checkbox("Delete staff"):
             st.subheader("Delete Staff")
             if st.button("Delete Staff"):
                 if selected_staff_id:
@@ -385,8 +398,7 @@ def staff_page():
                     st.success(f"Staff {selected_staff_id} deleted.")
                 else:
                     st.error("Staff ID is required to delete a staff member.")
-        else:
-            st.warning("No staff data found.")
+        
         # Tab for deleting staff
             
 
@@ -396,68 +408,70 @@ def staff_page():
         # Select class based on graduate level
         class_name = ''
         if graduate_level == "PG":
-            class_name = st.selectbox("Class:", ["I", "II"])
+            class_name = st.selectbox("Class:", ["I", "II"],key="PG_time")
         else:
-            class_name = st.selectbox("Class:", ["I", "II", "III"])
+            class_name = st.selectbox("Class:", ["I", "II", "III"],key="UG_time")
 
         if class_name:
+            print(class_name)
             timetable_data = operation.dboperation.view_timetable(department_id, class_name)
-            if timetable_data:
-                timetable_df = pd.DataFrame(timetable_data, columns=["Day", "Time", "Subject"])
+            st.table(timetable_data)
+            # if timetable_data:
+            #     timetable_df = pd.DataFrame(timetable_data, columns=["Day", "Time", "Subject"])
 
-                # Split data into weekdays (Monday to Friday) and Saturday
-                weekdays_df = timetable_df[timetable_df['Day'].isin(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])]
-                saturday_df = timetable_df[timetable_df['Day'] == "Saturday"]
+            #     # Split data into weekdays (Monday to Friday) and Saturday
+            #     weekdays_df = timetable_df[timetable_df['Day'].isin(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])]
+            #     saturday_df = timetable_df[timetable_df['Day'] == "Saturday"]
 
-                # Display weekdays
-                if not weekdays_df.empty:
-                    weekdays_grouped = weekdays_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
-                    st.write("**Weekday Timetable (Monday to Friday)**")
-                    st.table(weekdays_grouped)
-                else:
-                    st.warning("No weekday timetable found.")
+            #     # Display weekdays
+            #     if not weekdays_df.empty:
+            #         weekdays_grouped = weekdays_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
+            #         st.write("**Weekday Timetable (Monday to Friday)**")
+            #         st.table(weekdays_grouped)
+            #     else:
+            #         st.warning("No weekday timetable found.")
 
-                # Display Saturday
-                if not saturday_df.empty:
-                    saturday_grouped = saturday_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
-                    st.write("**Saturday Timetable**")
-                    st.table(saturday_grouped)
-                else:
-                    st.warning("No Saturday timetable found.")
+            #     # Display Saturday
+            #     if not saturday_df.empty:
+            #         saturday_grouped = saturday_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
+            #         st.write("**Saturday Timetable**")
+            #         st.table(saturday_grouped)
+            #     else:
+            #         st.warning("No Saturday timetable found.")
 
                 # Update timetable
-                st.subheader("Manage Timetable")
-                if st.checkbox("Update Timetable"):
-                    st.write("Update Timetable Entry")
-                    entry_to_update = st.selectbox(
-                        "Select Entry to Update",
-                        timetable_df.to_dict('records'),
-                        format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
-                    )
-                    if entry_to_update:
-                        with st.form("update_timetable_form"):
-                            new_day = st.selectbox("Day", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], index=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].index(entry_to_update['Day']))
-                            new_time = st.text_input("Time", value=entry_to_update["Time"])
-                            new_subject = st.text_input("Subject", value=entry_to_update["Subject"])
-                            submitted = st.form_submit_button("Update")
-                            if submitted:
-                                operation.dboperation.update_timetable(department_id, class_name, entry_to_update['Day'], entry_to_update['Time'], new_day, new_time, new_subject)
-                                st.success("Timetable entry updated successfully.")
+            st.subheader("Manage Timetable")
+            if st.checkbox("Update Timetable"):
+                st.write("Update Timetable Entry")
+                entry_to_update = st.selectbox(
+                    "Select Entry to Update",
+                    timetable_df.to_dict('records'),
+                    format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
+                )
+                if entry_to_update:
+                    with st.form("update_timetable_form"):
+                        new_day = st.selectbox("Day", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], index=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].index(entry_to_update['Day']))
+                        new_time = st.text_input("Time", value=entry_to_update["Time"])
+                        new_subject = st.text_input("Subject", value=entry_to_update["Subject"])
+                        submitted = st.form_submit_button("Update")
+                        if submitted:
+                            operation.dboperation.update_timetable(department_id, class_name, entry_to_update['Day'], entry_to_update['Time'], new_day, new_time, new_subject)
+                            st.success("Timetable entry updated successfully.")
 
-                # Delete timetable
-                if st.checkbox("Delete Timetable"):
-                    st.write("Delete Timetable Entry")
-                    entry_to_delete = st.selectbox(
-                        "Select Entry to Delete",
-                        timetable_df.to_dict('records'),
-                        format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
-                    )
-                    if entry_to_delete:
-                        if st.button("Delete"):
-                            operation.dboperation.delete_timetable(department_id, class_name, entry_to_delete['Day'], entry_to_delete['Time'])
-                            st.success("Timetable entry deleted successfully.")
-            else:
-                st.warning("No timetable found for this department.")
+            # Delete timetable
+            if st.checkbox("Delete Timetable"):
+                st.write("Delete Timetable Entry")
+                entry_to_delete = st.selectbox(
+                    "Select Entry to Delete",
+                    timetable_df.to_dict('records'),
+                    format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
+                )
+                if entry_to_delete:
+                    if st.button("Delete"):
+                        operation.dboperation.delete_timetable(department_id, class_name, entry_to_delete['Day'], entry_to_delete['Time'])
+                        st.success("Timetable entry deleted successfully.")
+        else:
+            st.warning("No timetable found for this department.")
 
 
         
@@ -466,7 +480,7 @@ def staff_page():
 
         # View Subjects
         if st.button("View Subject Details"):
-            subjects = operation.dboperation.view_subjects(department_id)
+            subjects = operation.dboperation.view_subjects_department(department_id)
             if subjects:
                 st.write(f"Subject Details for Department: {department_name}")
                 subject_df = pd.DataFrame(subjects, columns=["Subject ID", "Name", "Class"])
@@ -476,7 +490,7 @@ def staff_page():
 
         # Update Subject
         if st.checkbox("Update Subject"):
-            subjects = operation.dboperation.view_subjects(department_id)
+            subjects = operation.dboperation.view_subjects_departemnt(department_id)
             if subjects:
                 subject_ids = [subject[0] for subject in subjects]  # Assuming Subject ID is the first field
                 selected_subject_id = st.selectbox("Select Subject ID", subject_ids)
@@ -489,9 +503,9 @@ def staff_page():
                     
                     new_name = st.text_input("Enter New Subject Name", value=current_name)
                     if graduate_level == "PG":
-                        class_name = st.selectbox("Class:", ["I", "II"], index=["I", "II"].index(current_class))
+                        class_name = st.selectbox("Class:", ["I", "II"], index=["I", "II"].index(current_class),key="PG_sub")
                     else:
-                        class_name = st.selectbox("Class:", ["I", "II", "III"], index=["I", "II", "III"].index(current_class))
+                        class_name = st.selectbox("Class:", ["I", "II", "III"], index=["I", "II", "III"].index(current_class),key="UG_sub")
                     
                     if st.button("Update Subject"):
                         operation.dboperation.update_subject(selected_subject_id, department_id, new_name, class_name)
@@ -517,9 +531,9 @@ def staff_page():
 
         # Fetch Students Based on Department and Class
         if graduate_level == "PG":
-            class_name = st.selectbox("Select Class:", ["I", "II"])
+            class_name = st.selectbox("Select Class:", ["I", "II"],key="PG_stu")
         else:
-            class_name = st.selectbox("Select Class:", ["I", "II", "III"])
+            class_name = st.selectbox("Select Class:", ["I", "II", "III"],key="UG_stu")
 
         if class_name:
             students = operation.dboperation.view_students(department_id, class_name)
@@ -548,7 +562,11 @@ def staff_page():
                         student_id = st.text_input("Student ID (required):", value=selected_student_id, disabled=True)
                         name = st.text_input("Name:", value=current_name)
                         dob = st.date_input("Date of Birth:", value=pd.to_datetime(current_dob))
-                        class_name = st.selectbox("Class:", ["I", "II", "III"], index=["I", "II", "III"].index(current_class))
+                        class_name=''
+                        if graduate_level == "PG":
+                            class_name = st.selectbox("Class:", ["I", "II"], index=["I", "II"].index(current_class),key="PG_stu_update")
+                        else:
+                            class_name = st.selectbox("Class:", ["I", "II", "III"], index=["I", "II", "III"].index(current_class),key="UG_stu_update")
 
                         submitted = st.form_submit_button("Update Student")
                         if submitted:
@@ -577,30 +595,31 @@ def staff_page():
 
         # Select Department and Class
         if graduate_level == "PG":
-            class_name = st.selectbox("Select Class:", ["I", "II"])
+            class_name = st.selectbox("Select Class:", ["I", "II"],key="mark_sub")
         else:
-            class_name = st.selectbox("Select Class:", ["I", "II", "III"])
+            class_name = st.selectbox("Select Class:", ["I", "II", "III"],key="mark_sub")
 
         # Fetch Subjects for Department and Class using view_subject()
         subjects = operation.dboperation.view_subjects(department_id, class_name)
         subject_dict = {subject[1]: subject[0] for subject in subjects}  # Subject Name: Subject ID
 
         subject_name = st.selectbox("Select Subject", list(subject_dict.keys()))
-        subject_id = subject_dict[subject_name]
+        if subject_name:
+            subject_id = subject_dict[subject_name]
 
-        # View Marks Subject-Wise
-        if st.button("View Marks Subject-Wise"):
-            students_marks_data = operation.dboperation.view_marks_class_department(department_id, class_name, subject_id)
-            if students_marks_data:
-                st.write(f"Subject-Wise Marks for Department: {department_name}, Class: {class_name}, Subject: {subject_name}")
-                marks_df = pd.DataFrame(
-                    students_marks_data,
-                    columns=["Student ID", "Name", "Quiz 1", "Quiz 2", "Quiz 3",
-                            "Assignment 1", "Assignment 2", "Internal 1", "Internal 2", "Internal 3"]
-                )
-                st.dataframe(marks_df)
-            else:
-                st.warning(f"No marks found for Subject: {subject_name}, Department: {department_name}, Class: {class_name}.")
+            # View Marks Subject-Wise
+            if st.button("View Marks Subject-Wise"):
+                students_marks_data = operation.dboperation.view_marks_class_department(department_id, class_name, subject_id)
+                if students_marks_data:
+                    st.write(f"Subject-Wise Marks for Department: {department_name}, Class: {class_name}, Subject: {subject_name}")
+                    marks_df = pd.DataFrame(
+                        students_marks_data,
+                        columns=["Student ID", "Name", "Quiz 1", "Quiz 2", "Quiz 3",
+                                "Assignment 1", "Assignment 2", "Internal 1", "Internal 2", "Internal 3"]
+                    )
+                    st.dataframe(marks_df)
+                else:
+                    st.warning(f"No marks found for Subject: {subject_name}, Department: {department_name}, Class: {class_name}.")
 
         # Update Marks by Student ID and Subject ID
         if st.checkbox("Update Marks by Student ID"):

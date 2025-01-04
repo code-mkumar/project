@@ -27,6 +27,65 @@ import os
 #         sql_content = sql_file.read()
 #     return role_content, sql_content
 
+# def write_to_file(filename, data=''):
+#     """
+#     Writes data to a file, overwriting the existing content.
+#     :param filename: The file to write to (student.txt or staff.txt).
+#     :param data: The data to write (a list of strings).
+#     """
+#     # Construct the absolute path for the `files` directory
+#     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+#     files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+#     # Ensure the `files` directory exists
+#     os.makedirs(files_dir, exist_ok=True)
+
+#     # Full path to the target file
+#     file_path = os.path.join(files_dir, f"{filename}.txt")
+#     with open(file_path, "w") as file:
+#         for line in data:
+#             file.write(line + "\n")
+#     print(f"Data successfully written to {filename}.")
+
+# def append_to_file(filename, data):
+#     """
+#     Appends data to a file.
+#     :param filename: The file to append to (student.txt or staff.txt).
+#     :param data: The data to append (a list of strings).
+#     """
+#     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+#     files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+#     # Ensure the `files` directory exists
+#     os.makedirs(files_dir, exist_ok=True)
+
+#     # Full path to the target file
+#     file_path = os.path.join(files_dir, {filename})
+#     with open(file_path, "a") as file:
+#         for line in data:
+#             file.write(line + "\n")
+#     print(f"Data successfully appended to {filename}.")
+
+
+# def read_from_file(filename):
+#     """
+#     Reads data from a file and returns it as a list of strings.
+#     :param filename: The file to read from (student.txt or staff.txt).
+#     :return: A list of strings (one per line in the file).
+#     """
+#     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+#     files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+#     # Ensure the `files` directory exists
+#     os.makedirs(files_dir, exist_ok=True)
+
+#     # Full path to the target file
+#     file_path = os.path.join(files_dir, {filename})
+#     with open(file_path, "r") as file:
+#         data = file.readlines()
+#     return [line.strip() for line in data]  # Remove newlines from each line
+import os
+
 def write_to_file(filename, data=''):
     """
     Writes data to a file, overwriting the existing content.
@@ -53,11 +112,18 @@ def append_to_file(filename, data):
     :param filename: The file to append to (student.txt or staff.txt).
     :param data: The data to append (a list of strings).
     """
-    with open(filename, "a") as file:
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+    files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+    # Ensure the `files` directory exists
+    os.makedirs(files_dir, exist_ok=True)
+
+    # Full path to the target file
+    file_path = os.path.join(files_dir, f"{filename}.txt")
+    with open(f"../files/{filename}", "a") as file:
         for line in data:
             file.write(line + "\n")
     print(f"Data successfully appended to {filename}.")
-
 
 def read_from_file(filename):
     """
@@ -65,9 +131,19 @@ def read_from_file(filename):
     :param filename: The file to read from (student.txt or staff.txt).
     :return: A list of strings (one per line in the file).
     """
-    with open(filename, "r") as file:
+    print("file name",filename)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
+    files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
+
+    # Ensure the `files` directory exists
+    os.makedirs(files_dir, exist_ok=True)
+
+    # Full path to the target file
+    file_path = os.path.join(files_dir, f"{filename}.txt")
+    with open(f"../files/{filename}", "r") as file:
         data = file.readlines()
     return [line.strip() for line in data]  # Remove newlines from each line
+
 
 def file_to_text(uploaded_file):
     if uploaded_file.type == "application/pdf":

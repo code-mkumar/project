@@ -20,7 +20,7 @@ def create_tables():
             name TEXT NOT NULL,
             dob DATE NOT NULL,
             department_id TEXT NOT NULL,
-            class TEXT NOT NULL,
+            class TEXT NOT NULL
         );
         """,
         """
@@ -28,7 +28,7 @@ def create_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject_id TEXT NOT NULL,
             student_id TEXT NOT NULL,
-            quiz1 FLOAT ,
+            quiz1 FLOAT,
             quiz2 FLOAT,
             quiz3 FLOAT,
             assignment1 FLOAT,
@@ -37,17 +37,16 @@ def create_tables():
             internal2 FLOAT,
             internal3 FLOAT
         );
-        """
-        ,
+        """,
         """
         CREATE TABLE IF NOT EXISTS staff_details (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             designation TEXT NOT NULL,
             department_id TEXT NOT NULL,
-            password TEXT NOT NULL DEFAULT pass_staff ,
+            password TEXT NOT NULL DEFAULT 'pass_staff',
             mfa BOOLEAN DEFAULT 0,
-            secd TEXT DEFAULT NONE,
+            secd TEXT DEFAULT 'NONE',
             phone_no INTEGER NOT NULL,
             email TEXT NOT NULL 
         );
@@ -63,9 +62,9 @@ def create_tables():
         """
         CREATE TABLE IF NOT EXISTS admin_details (
             id TEXT PRIMARY KEY,
-            password TEXT NOT NULL DEFAULT pass_admin,
+            password TEXT NOT NULL DEFAULT 'pass_admin',
             mfa BOOLEAN DEFAULT 0,
-            secd TEXT DEFAULT NONE
+            secd TEXT DEFAULT 'NONE'
         );
         """,
         """
@@ -79,7 +78,7 @@ def create_tables():
         """
         CREATE TABLE IF NOT EXISTS subject (
             id TEXT PRIMARY KEY,
-            department_id INTEGER NOT NULL,
+            department_id TEXT NOT NULL,
             name TEXT NOT NULL,
             class TEXT NOT NULL
         );
@@ -91,34 +90,33 @@ def create_tables():
             time TEXT NOT NULL,
             subject TEXT NOT NULL,
             class TEXT NOT NULL,
-            department_id INTEGER NOT NULL
+            department_id TEXT NOT NULL
         );
         """,
-        """CREATE INDEX student_details
-        ON table_name (id);
-        """,
-         """CREATE INDEX student_mark_details
-        ON table_name (id);
-        """,
-         """CREATE INDEX staff_details
-        ON table_name (id);
-        """,
-         """CREATE INDEX admin_detials
-        ON table_name (id);
-        """,
-         """CREATE INDEX feedback
-        ON table_name (id);
-        """,
-         """CREATE INDEX timetable
-        ON table_name (id);
-        """,
-         """CREATE INDEX subject
-        ON table_name (id);
-        """,
-         """CREATE INDEX department
-        ON table_name (id);
         """
-
+        CREATE INDEX IF NOT EXISTS idx_student_details ON student_details (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_student_mark_details ON student_mark_details (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_staff_details ON staff_details (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_admin_details ON admin_details (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_feedback ON feedback (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_timetable ON timetable (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_subject ON subject (id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_department ON department_details (id);
+        """
     ]
 
     # Execute all queries
@@ -324,7 +322,7 @@ def read_sql_query(sql):
 def change_pass(password,user_id):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE user_detail SET password = ? WHERE id = ?", (password, user_id))
+    cursor.execute("UPDATE staff_details SET password = ? WHERE id = ?", (password, user_id))
     conn.commit()
     conn.close()
 
@@ -589,7 +587,16 @@ def add_subject(subject_id,department_id,name,class_name):
     print("Subject added successfully.")
 
 # Function to view subjects
-def view_subjects(department_id):
+def view_subjects(department_id,class_name):
+    conn = create_connection()
+    cursor = conn.cursor()
+    query = "SELECT * FROM subject where department_id =?AND class =?;"
+    cursor.execute(query,(department_id,class_name,))
+    subjects = cursor.fetchall()
+    conn.close()
+    return subjects 
+
+def view_subjects_departemnt(department_id):
     conn = create_connection()
     cursor = conn.cursor()
     query = "SELECT * FROM subject where department_id =?;"
@@ -807,3 +814,54 @@ def delete_marks(student_id):
     conn.commit()
     conn.close()
     print(f"Marks for deleted successfully for student ID {student_id}.")
+
+
+
+# Function to add feedback
+def add_feedback( user_id, name, message):
+    """
+    Adds a feedback entry to the database.
+
+    :param db_path: Path to the SQLite database file.
+    :param user_id: ID of the user providing the feedback.
+    :param name: Name of the user providing the feedback.
+    :param message: Feedback message.
+    """
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO feedback (user_id, name, message)
+            VALUES (?, ?, ?)
+        """, (user_id, name, message))
+        conn.commit()
+        print("Feedback added successfully!")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        conn.close()
+
+# Function to delete feedback
+def delete_feedback( feedback_id):
+    """
+    Deletes a feedback entry from the database.
+
+    :param db_path: Path to the SQLite database file.
+    :param feedback_id: ID of the feedback entry to delete.
+    """
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM feedback WHERE id = ?
+        """, (feedback_id,))
+        conn.commit()
+        if cursor.rowcount > 0:
+            print("Feedback deleted successfully!")
+        else:
+            print("No feedback found with the provided ID.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        conn.close()
+
