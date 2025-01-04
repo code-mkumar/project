@@ -41,7 +41,7 @@ def write_to_file(filename, data=''):
     os.makedirs(files_dir, exist_ok=True)
 
     # Full path to the target file
-    file_path = os.path.join(files_dir, f"{file_name}.txt")
+    file_path = os.path.join(files_dir, f"{filename}.txt")
     with open(filename, "w") as file:
         for line in data:
             file.write(line + "\n")
