@@ -98,13 +98,16 @@ def admin_page():
     )
 
         # Open File Button
-        existing_content=''
+        
         if st.button("Open File"):
             file_path = os.path.join(folder_path, existing_file)
             with open(file_path, "r") as f:
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300,disabled=True)
         if st.checkbox("update"):
+            file_path = os.path.join(folder_path, existing_file)
+            with open(file_path, "r") as f:
+                existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
             if st.button("update Content",key="update"):
                 file_path = os.path.join(folder_path, existing_file)
