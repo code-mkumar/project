@@ -38,6 +38,7 @@ def admin_page():
 # List of text files
                            
     if module=="File Upload and Edit":
+        st.write("Current working directory:", os.getcwd())
         st.subheader("File Creation")
         f1=st.text_input("Enter the file name")
         file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/{f1}.txt"))
