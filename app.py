@@ -9,7 +9,7 @@ import components.guest
 import components.login
 import components.otpVerify
 import components.qrsetupp
-import components.staff
+import components.staff 
 
 import components.student
 # Main app
