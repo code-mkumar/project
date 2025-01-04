@@ -104,15 +104,10 @@ def admin_page():
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300)
 
-            if st.button("Update File"):
-                st.balloons()
-                try:
-                    with open(file_path, "w") as f:
-                        f.write(edited_existing_content)
-                    st.success(f"Content of {existing_file} updated successfully!")
-                except Exception as e:
-                    st.write(e)
-                    print("***********************************************",e)
+            if edited_existing_content: #st.button("Update File"):
+                with open(file_path, "w") as f:
+                    f.write(edited_existing_content)
+                st.success(f"Content of {existing_file} updated successfully!")
 
     # Deletion section
         st.subheader("Delete File Content")
