@@ -143,7 +143,7 @@ def welcome_page():
         # Generate response for the question and answer
         relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
         context = "\n\n".join(relevent_chunk)
-        answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid {not str(data_sql)} and the inforation is needed {context}")
+        answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid { str(data_sql)} and the inforation is needed {context}")
             
         # answer = genai.gemini.model.generate_content(f"student name :{data[1]}  prompt:{role_prompt} Answer this question: {question} with results {str(data)}")
         result_text = answer.candidates[0].content.parts[0].text

@@ -171,7 +171,7 @@ def staff_page():
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
             context = "\n\n".join(relevent_chunk)
-            answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid {not str(data_sql)} and the inforation is needed {context}")
+            answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid { str(data_sql)} and the inforation is needed {context}")
             result_text = answer.candidates[0].content.parts[0].text
             st.chat_message('assistant').markdown(result_text)
             # Store the question and answer in session state
