@@ -106,7 +106,7 @@ def guest_page():
                 st.session_state.qa_list.append({'question': question, 'answer': result_text})
 
                 # Display the current question and answer
-                st.chat_message('ai').markdown(f"**Question:** {question}")
+                st.chat_message('user').markdown(f"**Question:** {question}")
                 st.chat_message('ai').markdown(f"**Answer:** {result_text}")
                 
 #                 txt = genai.gemini.model.generate_content(f"{question} give 1 if the question needs an SQL query or 0")
