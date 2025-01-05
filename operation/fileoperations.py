@@ -137,10 +137,10 @@ def read_from_file(filename):
 
     # Ensure the `files` directory exists
     os.makedirs(files_dir, exist_ok=True)
-
+    folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/"))
     # Full path to the target file
-    file_path = os.path.join(files_dir, f"{filename}.txt")
-    with open(f"../files/{filename}", "r") as file:
+    file_path = os.path.join(folder_path, filename)
+    with open(file_path, "r") as file:
         data = file.readlines()
     return [line.strip() for line in data]  # Remove newlines from each line
 

@@ -4,10 +4,12 @@ import operation
 # import operation.dboperation
 # import operation.fileoperations
 import operation.dboperation
+import operation.fileoperations
 import operation.preprocessing
 import json
 import genai
 import operation
+import os
 def guest_page():
     # Initialize session state variables
     if 'qa_list' not in st.session_state:
@@ -64,16 +66,23 @@ def guest_page():
 
     # Process questions if the username is set
     if st.session_state.username:
+        role_prompt = operation.fileoperations.read_from_file('default.txt')
+        folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../files/"))
+
+        # Define the list of files to exclude
+        excluded_files = {'staff_role.txt', 'staff_sql.txt', 'student_role.txt', 'student_sql.txt', 'default.txt'}
+
+        # Get all files in the folder except the excluded ones
+        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f)) and f not in excluded_files]
+        info=''
+        # Print the filtered files
+        for file in files:
+            info += str(operation.fileoperations.read_from_file(file))
+        
+        chunks=operation.preprocessing.chunk_text(info)
         st.write(f"Hello, {st.session_state.username}!")
-        chunks = operation.preprocessing.chunk_text(f"{collegehistory}\n{departmenthistory}")
-
-        def process_and_clear():
-            st.session_state.stored_value = st.session_state.input
-            st.session_state.input = ""
-
-        # Input field for the user's question
-        st.text_area('Input your question:', key='input', on_change=process_and_clear)
-        question = st.session_state.stored_value
+        # chunks = operation.preprocessing.chunk_text(f"{collegehistory}\n{departmenthistory}")
+        question = st.chat_input("Ask your question")
 
         if question:
             # Retrieve relevant chunks
@@ -86,19 +95,6 @@ def guest_page():
 
             # Query LM Studio for the answer
             with st.spinner("Generating answer..."):
-                txt = genai.gemini.model.generate_content(f"{question} give 1 if the question needs an SQL query or 0")
-                data = ''
-                if txt.text.strip() != '0':
-                    response = genai.gemini.model.generate_content(f"{default_sql}\n\n{question}")
-                    raw_query = response.text
-                    formatted_query = raw_query.replace("sql", "").strip("'''").strip()
-                    single_line_query = " ".join(formatted_query.split()).replace("```", "")
-                    data = operation.dboperation.read_sql_query(single_line_query)
-
-                # Format data for readability
-                formatted_data = json.dumps(data, indent=2) if isinstance(data, (dict, list)) else str(data)
-
-                # Generate answer using the context and formatted data
                 answer = genai.gemini.model.generate_content(
                     f"use the data {context} and frame the answer for this question {question} use this template  in formal english"
                 )
@@ -110,4 +106,29 @@ def guest_page():
                 # Display the current question and answer
                 st.markdown(f"**Question:** {question}")
                 st.markdown(f"**Answer:** {result_text}")
-#login page
+                
+#                 txt = genai.gemini.model.generate_content(f"{question} give 1 if the question needs an SQL query or 0")
+#                 data = ''
+#                 if txt.text.strip() != '0':
+#                     response = genai.gemini.model.generate_content(f"{default_sql}\n\n{question}")
+#                     raw_query = response.text
+#                     formatted_query = raw_query.replace("sql", "").strip("'''").strip()
+#                     single_line_query = " ".join(formatted_query.split()).replace("```", "")
+#                     data = operation.dboperation.read_sql_query(single_line_query)
+
+#                 # Format data for readability
+#                 formatted_data = json.dumps(data, indent=2) if isinstance(data, (dict, list)) else str(data)
+
+#                 # Generate answer using the context and formatted data
+#                 answer = genai.gemini.model.generate_content(
+#                     f"use the data {context} and frame the answer for this question {question} use this template  in formal english"
+#                 )
+#                 result_text = answer.candidates[0].content.parts[0].text
+
+#                 # Store the question and answer in session state
+#                 st.session_state.qa_list.append({'question': question, 'answer': result_text})
+
+#                 # Display the current question and answer
+#                 st.markdown(f"**Question:** {question}")
+#                 st.markdown(f"**Answer:** {result_text}")
+# #login page

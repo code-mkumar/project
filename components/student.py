@@ -3,9 +3,11 @@ import genai.gemini
 import operation
 import operation.dboperation
 # import operation.fileoperations
+import operation.fileoperations
 import operation.preprocessing
 import operation.qrsetter
 import genai
+import os
 def welcome_page():
     # st.set_page_config(page_title="Anjac_AI", layout="wide")
     data = operation.dboperation.view_student(st.session_state.user_id)
@@ -94,9 +96,21 @@ def welcome_page():
     # st.header(f"{st.session_state.role} SQL Content:")
     # st.text(st.session_state.sql_content)
     # role = st.session_state.role
-    role_prompt=''
-    sql_content = ''
+    role_prompt=operation.fileoperations.read_from_file("student_role.txt")
+    sql_content = operation.fileoperations.read_from_file("student_sql.txt")
+    folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../files/"))
+
+    # Define the list of files to exclude
+    excluded_files = {'staff_role.txt', 'staff_sql.txt', 'student_role.txt', 'student_sql.txt', 'default.txt'}
+
+    # Get all files in the folder except the excluded ones
+    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f)) and f not in excluded_files]
+    info=''
+    # Print the filtered files
+    for file in files:
+        info += str(operation.fileoperations.read_from_file(file))
     
+    chunks=operation.preprocessing.chunk_text(info)
     
     #question1 = st.text_area('Input your question:', key='input',on_change=process_and_clear)
     # submit = st.button('Ask the question')
@@ -115,9 +129,9 @@ def welcome_page():
         single_line_query = " ".join(formatted_query.split()).replace("```", "")
         # print(single_line_query)
         # Query the database
-        data = operation.dboperation.read_sql_query(single_line_query)
+        data_sql = operation.dboperation.read_sql_query(single_line_query)
 
-        if isinstance(data, list):
+        if isinstance(data_sql, list):
             #st.write("according to,")
             #st.table(data)
             pass
@@ -127,7 +141,11 @@ def welcome_page():
             # Display any errors
             pass
         # Generate response for the question and answer
-        answer = genai.gemini.model.generate_content(f"student name :{data[1]}  prompt:{role_prompt} Answer this question: {question} with results {str(data)}")
+        relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
+        context = "\n\n".join(relevent_chunk)
+        answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid {str(data_sql)} and the inforation is needed {context}")
+            
+        # answer = genai.gemini.model.generate_content(f"student name :{data[1]}  prompt:{role_prompt} Answer this question: {question} with results {str(data)}")
         result_text = answer.candidates[0].content.parts[0].text
         st.chat_message('ai').markdown(result_text)
         # Store the question and answer in session state
