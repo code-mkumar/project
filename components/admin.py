@@ -85,7 +85,7 @@ def admin_page():
             if st.button("Save File"):
                 file_path = os.path.join(folder_path, category)
                 st.write(file_path)
-                with open(file_path, "a") as f:
+                with open(file_path, "a", encoding='utf-8') as f:
                     f.write(edited_content)
                 st.success(f"File content saved to {category} successfully!")
 
@@ -101,28 +101,28 @@ def admin_page():
         
         if st.button("Open File" ,key="open"):
             file_path = os.path.join(folder_path, existing_file)
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding='utf-8') as f:
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300,disabled=True,key="read")
             # if st.button("update Content",key="update1"):
             #     file_path = os.path.join(folder_path, existing_file)
-            #     with open(file_path, "w") as f:
+            #     with open(file_path, "w", encoding='utf-8') as f:
             #         f.write(edited_existing_content)
             #     st.success(f"Content of {existing_file} updated successfully!")
         if st.checkbox("update"):
             file_path = os.path.join(folder_path, existing_file)
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding='utf-8') as f:
                 existing_content = f.read()
             edited_existing_content = st.text_area("Edit Existing File Content", value=existing_content, height=300,key="update")
             if st.button("update Content",key="update2"):
                 file_path = os.path.join(folder_path, existing_file)
-                with open(file_path, "w") as f:
+                with open(file_path, "w", encoding='utf-8') as f:
                     f.write(edited_existing_content)
                 st.success(f"Content of {existing_file} updated successfully!")
                 
             # if st.button("Update File"):
             #     try:
-            #         with open(file_path, "w") as f:
+            #         with open(file_path, "w", encoding='utf-8') as f:
             #             f.write(edited_existing_content)
             #         st.success(f"Content of {existing_file} updated successfully!")
             #     except Exception as e:
@@ -138,7 +138,7 @@ def admin_page():
 
         if st.button("Delete Content"):
             file_path = os.path.join(folder_path, file_to_delete)
-            with open(file_path, "w") as f:
+            with open(file_path, "w", encoding='utf-8') as f:
                 f.write("")
             st.success(f"Content of {file_to_delete} deleted successfully!")
 
