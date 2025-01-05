@@ -9,8 +9,8 @@ def get_gemini_response(combined_prompt):
     # print(response)
     query=response.text
     # Add user_id for personal queries if not already included
-    if "my" in combined_prompt.lower() and "user_id" not in query.lower():
-        query = query.strip(";") + f" WHERE user_id='{st.session_state.id}';"
+    if "my" in combined_prompt.lower() and "id" not in query.lower():
+        query = query.strip(";") + f" WHERE id='{st.session_state.id}';"
 
     # Remove unnecessary user_id filters for general queries
     general_contexts = ["department names", "course names", "college history", "programmes of study"]
