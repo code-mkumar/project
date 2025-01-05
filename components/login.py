@@ -24,7 +24,7 @@ def login_page():
             # st.session_state.authenticated = True
             st.session_state.user_id = user_id
             auth_param = dob.isoformat() if role == "student_details" else password
-            print(auth_param)
+            # print(auth_param)
             user = operation.dboperation.check_user(user_id, auth_param, role)
             #user = operation.dboperation.check_user(user_id,password,role)
             if user:    
@@ -49,7 +49,8 @@ def login_page():
                     st.rerun()
                 elif role == "admin_details":
                     st.session_state.page="admin"
-                    st.rerun()         
+                    st.rerun() 
+                st.rerun()        
             else:
                 st.error("Invalid credentials.")
     if st.button("←--"):
