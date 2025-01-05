@@ -28,11 +28,11 @@ def create_combined_prompt(question, sql_prompt):
 
     # Check if the question matches user-specific keywords
     if any(keyword in question.lower() for keyword in user_specific_keywords):
-        return f"{sql_prompt}\n\nWrite a query to fetch the relevant information using user_id='{st.session_state.id}'.\n\nQuestion: {question}\n\n"
+        return f"{sql_prompt}\n\nWrite a query to fetch the relevant information using id='{st.session_state.id}'.\n\nQuestion: {question}\n\n"
 
     # Check if the question matches general keywords
     elif any(keyword in question.lower() for keyword in general_keywords):
-        return f"{sql_prompt}\n\nWrite a query to fetch the relevant information without using user_id or any specific filters.\n\nQuestion: {question}\n\n"
+        return f"{sql_prompt}\n\nWrite a query to fetch the relevant information without using id or any specific filters.\n\nQuestion: {question}\n\n"
 
     # Default behavior
     return f"{sql_prompt}\n\n{question}\n\n"
