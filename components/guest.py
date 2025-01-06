@@ -141,7 +141,7 @@ def guest_page():
             # Query LM Studio for the answer
             with st.spinner("Generating answer..."):
                 answer = genai.gemini.model.generate_content(
-                    f"use the data {context} and frame the answer for this question {question} use this template  in formal english"
+                    f"use the data {context} and frame the answer for this question {question} use this template {role_prompt} in formal english"
                 )
                 result_text = answer.candidates[0].content.parts[0].text
 
