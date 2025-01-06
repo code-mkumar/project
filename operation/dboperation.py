@@ -173,9 +173,9 @@ def check_user(user_id, password, role):
             query = f'SELECT * FROM {role} WHERE id = ? AND password = ?'
             cursor.execute(query, (user_id, password))
         data = cursor.fetchone()
-        print(query)
+        # print(query)
         # Execute the query
-        print(data)
+        # print(data)
         return data
     except sqlite3.Error as e:
         print(f"Database error: {e}")
@@ -315,7 +315,7 @@ def read_sql_query(sql):
         return rows
     except Exception as e:
         #print(sql)
-        print(e)
+        print( "sql error:",e)
         return f"SQLite error: {e}"
 
 

@@ -131,7 +131,7 @@ def read_from_file(filename):
     :param filename: The file to read from (student.txt or staff.txt).
     :return: A list of strings (one per line in the file).
     """
-    print("file name",filename)
+    # print("file name",filename)
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # Move up one level
     files_dir = os.path.join(base_dir, "files")  # Path to the `files` directory
 

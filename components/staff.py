@@ -13,7 +13,7 @@ import os
 def staff_page():
     # st.set_page_config(page_title="Anjac_AI_staff", layout="wide")
     data = operation.dboperation.view_staff(st.session_state.user_id)
-    print("data:",data)
+    # print("data:",data)
     department_id=data[0][3]
     # Sidebar content
     with st.sidebar:
@@ -147,8 +147,8 @@ def staff_page():
         if question:
             st.chat_message("human").text(question)
             combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
-            response = genai.gemini.get_gemini_response(combined_prompt)
-
+            response = genai.gemini.get_gemini_response(combined_prompt,data)
+            print(response)
             # Display the SQL query
             # st.write("Generated SQL Query:", response)
             raw_query = response
@@ -158,7 +158,7 @@ def staff_page():
             # print(single_line_query)
             # Query the database
             data_sql = operation.dboperation.read_sql_query(single_line_query)
-
+            # print(data_sql)
             if isinstance(data_sql, list):
                 #st.write("according to,")
                 #st.table(data)
@@ -171,7 +171,17 @@ def staff_page():
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
             context = "\n\n".join(relevent_chunk)
-            answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid { str(data_sql)} and the inforation is needed {context}")
+            print(str(data_sql))
+            # print (context)
+            answer = genai.gemini.model.generate_content(
+    f"""Please interact with the user without ending the communication prematurely dont restrict the user. 
+    Use the following staff name: {data[0][1]} use the word according to or dear. 
+    Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
+    Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
+    Incorporate general context into your response: 
+    Ensure that all responses comply with the defined access permissions and data restrictions."""
+)
+
             result_text = answer.candidates[0].content.parts[0].text
             st.chat_message('assistant').markdown(result_text)
             # Store the question and answer in session state
@@ -438,29 +448,42 @@ def staff_page():
         if class_name:
             print(class_name)
             timetable_data = operation.dboperation.view_timetable(department_id, class_name)
-            st.table(timetable_data)
-            # if timetable_data:
-            #     timetable_df = pd.DataFrame(timetable_data, columns=["Day", "Time", "Subject"])
+            # st.table(timetable_data)
+            df = pd.DataFrame(timetable_data, columns=['ID', 'Day', 'Time', 'Subject', 'Section', 'Department'])
 
-            #     # Split data into weekdays (Monday to Friday) and Saturday
-            #     weekdays_df = timetable_df[timetable_df['Day'].isin(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])]
-            #     saturday_df = timetable_df[timetable_df['Day'] == "Saturday"]
+            df_weekdays = df[df['Day'].isin(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])]
 
-            #     # Display weekdays
-            #     if not weekdays_df.empty:
-            #         weekdays_grouped = weekdays_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
-            #         st.write("**Weekday Timetable (Monday to Friday)**")
-            #         st.table(weekdays_grouped)
-            #     else:
-            #         st.warning("No weekday timetable found.")
+            # Concatenate subjects for duplicate time slots
+            df_agg = df_weekdays.groupby(['Day', 'Time'])['Subject'].apply(lambda x: ', '.join(x)).reset_index()
 
-            #     # Display Saturday
-            #     if not saturday_df.empty:
-            #         saturday_grouped = saturday_df.groupby(['Day', 'Time'])['Subject'].first().unstack(fill_value="No Subject")
-            #         st.write("**Saturday Timetable**")
-            #         st.table(saturday_grouped)
-            #     else:
-            #         st.warning("No Saturday timetable found.")
+            # Create a pivot table
+            pivot_table = df_agg.pivot(index='Day', columns='Time', values='Subject')
+
+            # Sort the index and columns to ensure correct order
+            pivot_table = pivot_table.reindex(index=['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+            pivot_table = pivot_table.sort_index(axis=1)
+
+            df_saturday = df[df['Day'] == 'saturday']
+
+            # Define the custom order for time slots
+            time_order = ['9.00-9.45', '9.45-10.30', '10.30-11.15', '11.20-12.10', '12.10-1.00']
+
+            # Ensure the time column follows the correct order
+            df_saturday['Time'] = pd.Categorical(df_saturday['Time'], categories=time_order, ordered=True)
+
+            # Sort the DataFrame by the custom time order
+            df_saturday_sorted = df_saturday.sort_values('Time')
+
+            # Concatenate subjects for duplicate time slots
+            df_saturday_agg = df_saturday_sorted.groupby(['Day', 'Time'])['Subject'].apply(lambda x: ', '.join(x)).reset_index()
+
+            # Create a pivot table for Saturday
+            saturday_pivot = df_saturday_agg.pivot(index='Day', columns='Time', values='Subject')
+
+
+            st.table(pivot_table)
+            st.table(saturday_pivot)
+            
 
                 # Update timetable
             st.subheader("Manage Timetable")
@@ -468,17 +491,22 @@ def staff_page():
                 st.write("Update Timetable Entry")
                 entry_to_update = st.selectbox(
                     "Select Entry to Update",
-                    timetable_df.to_dict('records'),
-                    format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
+                    df.to_dict('records'),
+                    format_func=lambda x: f"{x['ID']} {x['Day']} {x['Time']} - {x['Subject']}"
                 )
                 if entry_to_update:
                     with st.form("update_timetable_form"):
-                        new_day = st.selectbox("Day", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], index=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].index(entry_to_update['Day']))
-                        new_time = st.text_input("Time", value=entry_to_update["Time"])
+                        timetable_id = entry_to_update["ID"]
+                        new_day = st.selectbox("Day", ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"], index=["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].index(entry_to_update['Day']))
+                        new_time=''
+                        if new_day == "saturday":
+                            new_time = st.selectbox("Time",['9.00-9.45','9.45-10.30','10.30-11.15', '11.20-12.10','12.10-1.00'], index=['9.00-9.45','9.45-10.30','10.30-11.15', '11.20-12.10','12.10-1.00'].index(entry_to_update["Time"]))
+                        else:
+                            new_time = st.selectbox("Time",['10-11','11-12','12-1','2-3','3-4'], index=['10-11','11-12','12-1','2-3','3-4'].index(entry_to_update["Time"]))
                         new_subject = st.text_input("Subject", value=entry_to_update["Subject"])
                         submitted = st.form_submit_button("Update")
                         if submitted:
-                            operation.dboperation.update_timetable(department_id, class_name, entry_to_update['Day'], entry_to_update['Time'], new_day, new_time, new_subject)
+                            operation.dboperation.update_timetable(timetable_id=timetable_id,department_id=department_id, class_name=class_name,day= new_day,time= new_time, subject=new_subject)
                             st.success("Timetable entry updated successfully.")
 
             # Delete timetable
@@ -486,12 +514,12 @@ def staff_page():
                 st.write("Delete Timetable Entry")
                 entry_to_delete = st.selectbox(
                     "Select Entry to Delete",
-                    timetable_df.to_dict('records'),
-                    format_func=lambda x: f"{x['Day']} {x['Time']} - {x['Subject']}"
+                    df.to_dict('records'),
+                    format_func=lambda x: f"{x['ID']}{x['Day']} {x['Time']} - {x['Subject']}"
                 )
                 if entry_to_delete:
                     if st.button("Delete"):
-                        operation.dboperation.delete_timetable(department_id, class_name, entry_to_delete['Day'], entry_to_delete['Time'])
+                        operation.dboperation.delete_timetable(entry_to_delete["ID"])
                         st.success("Timetable entry deleted successfully.")
         else:
             st.warning("No timetable found for this department.")
