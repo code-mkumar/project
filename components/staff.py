@@ -172,6 +172,7 @@ def staff_page():
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
             context = "\n\n".join(f"{question}"+str(data_sql))
             print(str(data_sql))
+            st.write(context)
             # print (context)
             from datetime import datetime
             current_datetime = datetime.now()
