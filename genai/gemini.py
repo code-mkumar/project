@@ -6,7 +6,7 @@ model = genai.GenerativeModel('gemini-pro')
 def get_gemini_response(combined_prompt,data):
     import re
     print(str(data))
-    response = model.generate_content(combined_prompt+"this is the information about the user "+str(data)+"the output as the list with [head,query]")
+    response = model.generate_content(combined_prompt+"this is the information about the user "+str(data))
     # print(response)
     query=response.text
     return query

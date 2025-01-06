@@ -148,7 +148,7 @@ def staff_page():
             st.chat_message("human").text(question)
             combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
             response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:4])
-            st.write(response)
+            
             # Display the SQL query
             # st.write("Generated SQL Query:", response)
             raw_query = response
@@ -157,7 +157,6 @@ def staff_page():
             single_line_query = " ".join(formatted_query.split()).replace("```", "")
             # print(single_line_query)
             # Query the database
-            st.write(single_line_query)
             data_sql = operation.dboperation.read_sql_query(single_line_query)
             # print(data_sql)
             if isinstance(data_sql, list):
@@ -171,8 +170,7 @@ def staff_page():
                 pass
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
-            context = "\n\n".join(relevent_chunk)
-            context="\n\n".join(str(data_sql))
+            context = "\n\n".join(f"{question}"+str(data_sql))
             print(str(data_sql))
             # print (context)
             from datetime import datetime
