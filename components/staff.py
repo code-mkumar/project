@@ -184,7 +184,8 @@ def staff_page():
     Ensure that all responses comply with the defined access permissions and data restrictions."""
 )
 
-            result_text = answer.candidates[0].content.parts[0].text
+            # result_text = answer.candidates[0].content.parts[0].text
+            result_text = answer.text
             st.chat_message('assistant').markdown(result_text)
             # Store the question and answer in session state
             st.session_state.qa_list.append({'question': question, 'answer': result_text})
