@@ -45,7 +45,8 @@ UGCSR: DEPARTMENT OF COMPUTER SCIENCE UG
 UGCOMEC: DEPARTMENT OF COMMERCE (UG-CA & EC) (PG - CA)
 UGCPA: Department of Commerce Professional Accounting (SF)}
 
-
+day in the format of monday ,tuesday,wednesday,thursday,friday,staurday only 
+sunday is holiday.
 
 Tables Overview
 student_details
