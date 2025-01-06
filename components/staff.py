@@ -180,7 +180,7 @@ def staff_page():
             answer = genai.gemini.model.generate_content(
     f"""Please interact with the user without ending the communication prematurely dont restrict the user. 
     Use the following staff name: {data[0][1]} use the word according to or dear. 
-    current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")}.
+    current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")} ,{datetime.now()}.
     Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
     relevent general context into your response: {context}."""
 )
