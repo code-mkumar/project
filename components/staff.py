@@ -171,16 +171,17 @@ def staff_page():
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
             context = "\n\n".join(relevent_chunk)
+            context+=str(data_sql)
             print(str(data_sql))
             # print (context)
             from datetime import datetime
             current_datetime = datetime.now()
+            # Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
             answer = genai.gemini.model.generate_content(
     f"""Please interact with the user without ending the communication prematurely dont restrict the user. 
     Use the following staff name: {data[0][1]} use the word according to or dear. 
     current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")}.
     Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
-    Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
     Incorporate general context into your response: {context}.
     Ensure that all responses comply with the defined access permissions and data restrictions."""
 )
