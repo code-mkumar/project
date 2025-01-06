@@ -157,6 +157,7 @@ def staff_page():
             single_line_query = " ".join(formatted_query.split()).replace("```", "")
             # print(single_line_query)
             # Query the database
+            st.write(single_line_query)
             data_sql = operation.dboperation.read_sql_query(single_line_query)
             # print(data_sql)
             if isinstance(data_sql, list):
