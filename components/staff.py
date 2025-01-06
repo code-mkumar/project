@@ -181,7 +181,7 @@ def staff_page():
     current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")}.
     Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
     Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
-    Incorporate general context into your response: 
+    Incorporate general context into your response: {context}.
     Ensure that all responses comply with the defined access permissions and data restrictions."""
 )
 
