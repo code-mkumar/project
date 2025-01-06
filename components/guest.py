@@ -27,7 +27,7 @@ def get_dynamic_greeting():
 def get_fun_fact():
     fun_facts = [
         "Did you know? Ayya Nadar Janaki Ammal College has been a pioneer in education since 1963!",
-        "Fun Fact: The college is known for its beautiful eco-friendly campus.",
+        "Fact: The college is known for its beautiful eco-friendly campus.",
         "Trivia: ANJAC offers over 20 undergraduate programs!",
     ]
     return random.choice(fun_facts)
