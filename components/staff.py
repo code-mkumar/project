@@ -170,7 +170,7 @@ def staff_page():
                 pass
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
-            context = "\n\n".join(f"{question}"+str(data_sql))
+            context = "{question}"+str(data_sql)
             print(str(data_sql))
             st.write(context)
             # print (context)
