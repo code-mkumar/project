@@ -182,8 +182,7 @@ def staff_page():
     Use the following staff name: {data[0][1]} use the word according to or dear. 
     current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")}.
     Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
-    Incorporate general context into your response: {context}.
-    Ensure that all responses comply with the defined access permissions and data restrictions."""
+    relevent general context into your response: {context}."""
 )
 
             # result_text = answer.candidates[0].content.parts[0].text
