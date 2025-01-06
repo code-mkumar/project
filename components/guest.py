@@ -28,7 +28,7 @@ def get_fun_fact():
     fun_facts = [
         
         🏫 History in a Name: ANJAC is named after the generous founders Thiru P. Ayya Nadar and Thirumathi A. Janaki Ammal.
-        🌏 'Little Japan' Connection: Located in Sivakasi, also known as 'Little Japan,' ANJAC has a legacy of excellence since 1963.
+        🌏 Little Japan Connection: Located in Sivakasi, also known as Little Japan, ANJAC has a legacy of excellence since 1963.
         🌳 Vast and Vibrant Campus: Spread over 157 acres, ANJAC is a self-sufficient educational hub.
         🏆 NIRF Top 100: Ranked 69th in NIRF 2023, showcasing academic and research excellence.
         ✨ NAAC ‘A+’ Excellence: Re-accredited with a stellar CGPA of 3.48 by NAAC.
