@@ -171,7 +171,7 @@ def staff_page():
             # Generate response for the question and answer
             relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
             context = "\n\n".join(relevent_chunk)
-            context+=str(data_sql)
+            context="\n\n".join(str(data_sql))
             print(str(data_sql))
             # print (context)
             from datetime import datetime
