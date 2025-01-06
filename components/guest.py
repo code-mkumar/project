@@ -10,6 +10,28 @@ import json
 import genai
 import operation
 import os
+import time
+import random
+
+# Function to display a dynamic welcome message
+def get_dynamic_greeting():
+    hour = time.localtime().tm_hour
+    if hour < 12:
+        return "Good Morning! Welcome to Anjac AI."
+    elif 12 <= hour < 18:
+        return "Good Afternoon! Glad to see you here."
+    else:
+        return "Good Evening! How can I assist you today?"
+
+# Function to display a random fun fact
+def get_fun_fact():
+    fun_facts = [
+        "Did you know? Ayya Nadar Janaki Ammal College has been a pioneer in education since 1963!",
+        "Fun Fact: The college is known for its beautiful eco-friendly campus.",
+        "Trivia: ANJAC offers over 20 undergraduate programs!",
+    ]
+    return random.choice(fun_facts)
+    
 def guest_page():
     # Initialize session state variables
     if 'qa_list' not in st.session_state:
@@ -55,7 +77,9 @@ def guest_page():
     # Display guest welcome message
     st.title("Welcome, Guest!")
     st.write("You can explore the site as a guest, but you'll need to log in for full role-based access.")
-
+    st.subheader(get_dynamic_greeting())
+    st.write("---")
+    st.write(f"🎓 **Fun Fact:** {get_fun_fact()}")
     # Ask for the user's name
     if not st.session_state.username:
         st.session_state.username =''
