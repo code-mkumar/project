@@ -174,10 +174,11 @@ def staff_page():
             print(str(data_sql))
             # print (context)
             from datetime import datetime
+            current_datetime = datetime.now()
             answer = genai.gemini.model.generate_content(
     f"""Please interact with the user without ending the communication prematurely dont restrict the user. 
     Use the following staff name: {data[0][1]} use the word according to or dear. 
-    current date and time  {datetime.now()} and current day is {datetime.weekday()}.
+    current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")}.
     Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
     Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
     Incorporate general context into your response: 
