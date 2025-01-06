@@ -114,7 +114,7 @@ def guest_page():
         folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../files/"))
 
         # Define the list of files to exclude
-        excluded_files = {'staff_role.txt', 'staff_sql.txt', 'student_role.txt', 'student_sql.txt', 'default.txt'}
+        excluded_files = {'staff_role.txt', 'staff_sql.txt', 'student_role.txt', 'student_sql.txt', 'default.txt','sy.txt'}
 
         # Get all files in the folder except the excluded ones
         files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f)) and f not in excluded_files]
