@@ -147,7 +147,7 @@ def staff_page():
         if question:
             st.chat_message("human").text(question)
             combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
-            response = genai.gemini.get_gemini_response(combined_prompt,data)
+            response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:4])
             st.write(response)
             # Display the SQL query
             # st.write("Generated SQL Query:", response)
