@@ -140,9 +140,11 @@ def read_from_file(filename):
     folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/"))
     # Full path to the target file
     file_path = os.path.join(folder_path, filename)
-    with open(file_path, "r") as file:
-        data = file.readlines()
-    return [line.strip() for line in data]  # Remove newlines from each line
+    with open(file_path, "r",encoding='utf-8') as file:
+        
+        data = file.read()
+    # return [line.strip() for line in data]  # Remove newlines from each line
+    return data
 
 
 def file_to_text(uploaded_file):

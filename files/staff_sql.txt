@@ -47,7 +47,8 @@ UGCPA: Department of Commerce Professional Accounting (SF)}
 
 day in the format of monday ,tuesday,wednesday,thursday,friday,staurday only 
 sunday is holiday.
-
+if the department detials ask fetch all the data from his/her department from all the table Which contain department_id
+if ask about other department fetch the department department_details and the corrspondind staff_details and verify the department by id  or name by his or her
 Tables Overview
 student_details
 Columns:
@@ -56,7 +57,7 @@ Columns:
 * dob: DATE, NOT NULL
 * department_id: TEXT, NOT NULL
 * class: TEXT, NOT NULL
-
+if aask out timetable 'SELECT * from timetable where department_id"
 student_mark_detials
 Columns:
 *id: INTEGER
@@ -309,3 +310,5 @@ Example queries:
       WHERE department_id = (SELECT department_id FROM staff_details WHERE id = 'staff_id');
 
       ```
+
+      if any context is not understand just product SELECT id,name from staff_details where id = bind this with below info the add is listed in the below information.

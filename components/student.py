@@ -119,7 +119,7 @@ def welcome_page():
     if question:
         st.chat_message("user").text(question)
         combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
-        response = genai.gemini.get_gemini_response(combined_prompt)
+        response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:3])
 
         # Display the SQL query
         # st.write("Generated SQL Query:", response)

@@ -1,14 +1,30 @@
 import sqlite3
 import os
+import operation
+import operation.dboperation
+
+# Get the absolute path to the database file
 db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "./dbs/university.db"))
-conn=sqlite3.connect(db_path)
-mycursor=conn.cursor()
+
+# Create a connection to the database
+conn = operation.dboperation.create_connection()
+mycursor = conn.cursor()
+
+# Query to list all tables in the database
+mycursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+# Fetch all results
+tables = mycursor.fetchall()
+
+# Print the table names
+print("Tables in the database:")
+for table in tables:
+    print(table[0])
+
+# Close the cursor and connection
+mycursor.close()
+conn.close()
+
 
 #altering the table 
 
-def altering_table():
-    mycursor.execute("alter table staff_details drop email T NOT N;")
-    #mycursor.execute("ALTER TABLE staff_details DROP CONSTRAINT UNIQUE CONSTRAINT;")
-    conn.commit()
-    conn.close()
-altering_table()

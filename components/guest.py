@@ -124,6 +124,7 @@ def guest_page():
             info += str(operation.fileoperations.read_from_file(file))
         
         chunks=operation.preprocessing.chunk_text(info)
+        st.write(chunks)
         st.write(f"Hello, {st.session_state.username}!")
         # chunks = operation.preprocessing.chunk_text(f"{collegehistory}\n{departmenthistory}")
         question = st.chat_input("Ask your question")
