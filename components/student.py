@@ -119,7 +119,7 @@ def welcome_page():
     
     question=st.chat_input("Ask the question")
     if question:
-        st.chat_message("human").text(question)
+        st.chat_message("human").markdown(question)
         combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
         response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:3])
 
