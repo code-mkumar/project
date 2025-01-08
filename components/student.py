@@ -119,20 +119,19 @@ def welcome_page():
     
     question=st.chat_input("Ask the question")
     if question:
-        st.chat_message("user").markdown(question)
         combined_prompt = operation.preprocessing.create_combined_prompt(question, sql_content)
-        response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:3])
-
+        response = genai.gemini.get_gemini_response(combined_prompt,data[0][0:4])
+        
         # Display the SQL query
         # st.write("Generated SQL Query:", response)
         raw_query = response
         formatted_query = raw_query.replace("sql", "").strip("'''").strip()
         # print("formatted :",formatted_query)
         single_line_query = " ".join(formatted_query.split()).replace("```", "")
-        # print(single_line_query)
+        print(single_line_query)
         # Query the database
         data_sql = operation.dboperation.read_sql_query(single_line_query)
-
+        # print(data_sql)
         if isinstance(data_sql, list):
             #st.write("according to,")
             #st.table(data)
@@ -144,13 +143,34 @@ def welcome_page():
             pass
         # Generate response for the question and answer
         relevent_chunk=operation.preprocessing.get_relevant_chunks(question,chunks)
-        context = "\n\n".join(relevent_chunk)
-        answer = genai.gemini.model.generate_content(f"staff details :{data}  prompt:{role_prompt} Answer this question: {question} with results only valid { str(data_sql)} and the inforation is needed {context}")
-            
-        # answer = genai.gemini.model.generate_content(f"student name :{data[1]}  prompt:{role_prompt} Answer this question: {question} with results {str(data)}")
-        result_text = answer.candidates[0].content.parts[0].text
-        st.chat_message('ai').markdown(result_text)
+        # context = "{question}"+str(data_sql)+relevent_chunk
+        # question = "I want the staff detail and the student timetable"
+        options = ["department", "timetable", "student", "student_mark", "subject", "staff"]
+
+        matched_words = [option for option in options if option in question]
+
+       
+        matchword = ', '.join(matched_words)
+        retrived_answer = question+str(data_sql)
+        relevent_chunk.append(retrived_answer)
+        context = ''.join(relevent_chunk)
+        print(str(data_sql))
+        st.write(relevent_chunk)
+        # st.write(context)
+        # print (context)
+        from datetime import datetime
+        current_datetime = datetime.now()
+        # Address the user's question by utilizing the database information provided: {str(data_sql)} format and give this. 
+        answer = genai.gemini.model.generate_content(
+f"""Please interact with the user without ending the communication prematurely dont restrict the user. 
+Use the following staff name: {data[0][0:4]} use the word according to or dear. 
+current date and time  {current_datetime.strftime("%A, %B %d, %Y, at %I:%M %p")} ,{datetime.now()}.
+Format your response based on this role prompt: {role_prompt} but don't provide the content inside it. 
+relevent general context into your response: {context} for this question {question}"""
+)
+
+        # result_text = answer.candidates[0].content.parts[0].text
+        result_text = answer.text
+        st.chat_message('assistant').markdown(result_text)
         # Store the question and answer in session state
         st.session_state.qa_list.append({'question': question, 'answer': result_text})
-
-        
