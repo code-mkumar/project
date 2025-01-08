@@ -14,7 +14,7 @@ def staff_page():
     # st.set_page_config(page_title="Anjac_AI_staff", layout="wide")
     data = operation.dboperation.view_staff(st.session_state.user_id)
     # print("data:",data)
-    department_id=data[0][3]
+    department_id=data[0][3] 
     # Sidebar content
     with st.sidebar:
         st.header("staff Modules")
