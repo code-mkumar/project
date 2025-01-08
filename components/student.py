@@ -2,7 +2,7 @@ import streamlit as st
 import genai.gemini
 import operation
 import operation.dboperation
-# import operation.fileoperations
+import operation.otheroperation
 import operation.fileoperations
 import operation.preprocessing
 import operation.qrsetter
@@ -86,7 +86,9 @@ def welcome_page():
     # Main page content
     st.title("Welcome to the ANJAC AI")
     st.write(f"Hello, {data[1]}!")
-
+    st.subheader(operation.otheroperation.get_dynamic_greeting())
+    st.write("---")
+    st.write(f"🎓 **Fun Fact:** {operation.otheroperation.get_fun_fact()}")
     
     # Initialize session state
     if 'qa_list' not in st.session_state:
