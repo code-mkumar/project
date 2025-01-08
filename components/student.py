@@ -100,7 +100,7 @@ def welcome_page():
     # role = st.session_state.role
     role_prompt=operation.fileoperations.read_from_file("student_role.txt")
     sql_content = operation.fileoperations.read_from_file("student_sql.txt")
-    st.write(sql_content)
+    # st.write(sql_content)
     folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../files/"))
 
     # Define the list of files to exclude
