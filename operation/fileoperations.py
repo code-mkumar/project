@@ -140,6 +140,7 @@ def read_from_file(filename):
     folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f"../files/"))
     # Full path to the target file
     file_path = os.path.join(folder_path, filename)
+    st.write(file_path)
     with open(file_path, "r",encoding='utf-8') as file:
         
         data = file.read()
