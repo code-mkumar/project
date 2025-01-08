@@ -3,6 +3,7 @@ import streamlit as st
 genai.configure(api_key='AIzaSyD3WqHberJDYyzXkmY1zKaoqd5uCJZDetI')
 model = genai.GenerativeModel('gemini-pro')
 
+
 def get_gemini_response(combined_prompt,data):
     import re
     print(str(data))
